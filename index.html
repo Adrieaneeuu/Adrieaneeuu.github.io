@@ -1,492 +1,120 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ro">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Repo Browser — Index pentru GitHub</title>
-  <meta name="description" content="Index interactiv pentru GitHub repo — listare, previzualizare și pin (local) pentru pagina index.html" />
-
+  <title>Index automat pentru director</title>
   <style>
-    :root{
-      --bg:#0f1724;
-      --card:#0b1220;
-      --muted:#9aa4b2;
-      --accent:#ef4444;
-      --glass: rgba(255,255,255,0.03);
-      --success:#16a34a;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      padding: 30px;
+      max-width: 900px;
+      margin: auto;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: linear-gradient(180deg,#071028 0%, #0b1220 100%);
-      color:#e6eef6; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      padding:28px;
-      min-height:100vh;
-    }
-    .wrap{max-width:1100px;margin:0 auto}
-    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
-    header h1{font-size:1.25rem;margin:0;color:var(--accent);letter-spacing:0.2px}
-    header p{margin:0;color:var(--muted);font-size:0.95rem}
-
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-    .field{background:var(--glass);padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);display:flex;gap:8px;align-items:center}
-    input[type="text"], input[type="password"], select{
-      background:transparent;border:0;outline:none;color:inherit;font-size:0.95rem;padding:6px 4px;
-      min-width:160px;
-    }
-    label.small{font-size:0.8rem;color:var(--muted);margin-right:6px}
-
-    button.btn{
-      background:linear-gradient(180deg,var(--accent),#b91c1c);
-      border:0;padding:10px 12px;border-radius:10px;color:white;font-weight:700;cursor:pointer;
-      box-shadow:0 6px 18px rgba(239,68,68,0.12)
-    }
-    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.05);color:var(--muted);padding:8px 10px;border-radius:8px}
-
-    .layout{display:grid;grid-template-columns: 1fr 360px; gap:16px}
-    @media(max-width:980px){ .layout{grid-template-columns:1fr} }
-
-    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.03)}
-    .panel h3{margin:0 0 10px 0;color:var(--accent)}
-    .search-row{display:flex;gap:8px;margin-bottom:10px}
-    .search-row input{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
-
-    .list{max-height:64vh;overflow:auto;padding-right:6px}
-    .item{display:flex;gap:12px;padding:10px;border-radius:10px;align-items:center;transition:all .12s;cursor:default}
-    .item:hover{background:rgba(255,255,255,0.02);transform:translateX(2px)}
-    .ico{width:46px;height:46px;border-radius:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted);font-family:var(--mono);font-size:0.9rem}
-    .meta{flex:1}
-    .meta b{display:block;color:#e8f0f8}
-    .meta small{color:var(--muted);display:block;margin-top:4px;font-size:0.86rem}
-    .actions{display:flex;gap:6px;align-items:center}
-
-    .pinned{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-    .pin-chip{background: rgba(239,68,68,0.09);padding:6px 8px;border-radius:999px;border:1px solid rgba(239,68,68,0.12);font-weight:700;color:var(--accent);cursor:pointer}
-    .pin-chip small{display:block;color:var(--muted);font-weight:400}
-
-    .preview{background:#041427;border-radius:10px;padding:12px;min-height:200px;border:1px solid rgba(255,255,255,0.02)}
-    .preview header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-    .preview .content{font-family:var(--mono);font-size:0.92rem;color:var(--muted);white-space:pre-wrap;max-height:48vh;overflow:auto;padding:6px;border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
-    .tag{display:inline-block;background:rgba(255,255,255,0.02);padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);font-size:0.85rem;color:var(--muted)}
-
-    footer{margin-top:16px;color:var(--muted);font-size:0.9rem;text-align:center}
-    a.link{color:#cfe8ff;text-decoration:none}
-    .muted{color:var(--muted)}
-    .small{font-size:0.86rem}
+    h1 { color: #ff4d4d; font-size: 1.8rem; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #30363d; }
+    th { color: #aaa; font-weight: 600; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .folder { color: #ffa657; }
+    .file { color: #9cdcfe; }
+    .desc { color: #8b949e; font-size: 0.9rem; margin-top: 15px; }
+    button { background: #21262d; color: #fff; border: 1px solid #30363d; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+    button:hover { background: #30363d; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>Repo Browser — Index pentru GitHub</h1>
-        <p class="muted">Introdu owner/repo și vizualizează conținutul. Poți <strong>pin</strong> fișiere (local)</p>
-      </div>
-      <div class="small muted">Sugestie: pentru pagină index a repo-ului, salvează acest fișier ca <code>index.html</code></div>
-    </header>
-
-    <div class="controls">
-      <div class="field">
-        <label class="small">Owner</label>
-        <input type="text" id="owner" placeholder="ex: github-username" value="">
-      </div>
-
-      <div class="field">
-        <label class="small">Repo</label>
-        <input type="text" id="repo" placeholder="ex: repo-name" value="">
-      </div>
-
-      <div class="field">
-        <label class="small">Branch</label>
-        <input type="text" id="branch" placeholder="main / master" value="main">
-      </div>
-
-      <div class="field" title="Token optional (pentru repo private)">
-        <label class="small">Token</label>
-        <input type="password" id="token" placeholder="(opțional)">
-      </div>
-
-      <button class="btn" id="fetchBtn">Fetch repo</button>
-      <button class="ghost" id="clearPins">Clear pins</button>
-    </div>
-
-    <div class="layout">
-      <div>
-        <div class="panel">
-          <h3>Pinned</h3>
-          <div class="pinned" id="pinnedArea" aria-live="polite"></div>
-          <div style="margin-top:8px" class="muted small">Pinned se păstrează local în browser (localStorage). Folosește butonul pin din listă.</div>
-        </div>
-
-        <div style="height:14px"></div>
-
-        <div class="panel">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3>Fișiere din Repository</h3>
-            <div class="small muted" id="repoInfo">—</div>
-          </div>
-
-          <div class="search-row">
-            <input id="filter" placeholder="Caută fișiere (nume, extensie)...">
-            <select id="typeFilter" title="Filtrează tipuri">
-              <option value="">Toate</option>
-              <option value=".html">.html</option>
-              <option value=".md">.md</option>
-              <option value=".js">.js</option>
-              <option value=".css">.css</option>
-              <option value=".png">.png/.jpg</option>
-            </select>
-          </div>
-
-          <div class="list" id="fileList" role="list"></div>
-        </div>
-      </div>
-
-      <aside>
-        <div class="panel preview" id="previewPanel">
-          <header>
-            <div class="tag" id="previewPath">Niciun fișier selectat</div>
-            <div id="previewActions"></div>
-          </header>
-          <div class="content" id="previewContent">Selectează un fișier din listă pentru a vedea previzualizarea. Pentru fișiere text (md, html, js, css, txt) vei vedea conținutul raw. Pentru imagini vei avea link de deschidere.</div>
-        </div>
-
-        <div style="height:12px"></div>
-
-        <div class="panel">
-          <h3>Instrucțiuni rapide</h3>
-          <ul class="muted small">
-            <li>Introduce owner & repo & branch apoi apasă <strong>Fetch repo</strong>.</li>
-            <li>Folosește <em>Pin</em> pentru a marca fișiere ca favorite (salvat local).</li>
-            <li>Token-ul este opțional; folosește-l doar pentru repo private.</li>
-            <li>Pune acest fișier ca <code>index.html</code> în repo pentru a-l folosi ca pagină de index.</li>
-          </ul>
-        </div>
-      </aside>
-    </div>
-
-    <footer>Made with ❤️ — deschis, client-side. Atenție: token-urile introduse în pagină sunt folosite doar în browser pentru apeluri API.</footer>
-  </div>
+  <h1>📂 Index pentru directorul curent</h1>
+  <div id="repoPath" class="desc">Se detectează calea și repo-ul...</div>
+  <table id="fileTable">
+    <thead><tr><th>Nume</th><th>Dimensiune</th><th>Acțiune</th></tr></thead>
+    <tbody id="list"></tbody>
+  </table>
 
 <script>
-/*
-  Repo Browser
-  - Folosește GitHub API: GET /repos/:owner/:repo/git/trees/:branch?recursive=1
-  - Pentru repo mari, răspunsul poate fi mare.
-  - Pinned este salvat în localStorage sub cheie 'repo_browser_pins'
-*/
+(async () => {
+  // --- CONFIG --- //
+  const defaultOwner = "Adrieaneeuu";   // 👉 pune aici username-ul tău GitHub
+  const defaultRepo  = "Adrieaneeuu.github.io"; // 👉 numele repo-ului
+  const defaultBranch = "main";      // sau 'master' dacă e cazul
+  // ---------------- //
 
-const fetchBtn = document.getElementById('fetchBtn');
-const ownerEl = document.getElementById('owner');
-const repoEl = document.getElementById('repo');
-const branchEl = document.getElementById('branch');
-const tokenEl = document.getElementById('token');
-const fileList = document.getElementById('fileList');
-const filterEl = document.getElementById('filter');
-const typeFilter = document.getElementById('typeFilter');
-const pinnedArea = document.getElementById('pinnedArea');
-const previewContent = document.getElementById('previewContent');
-const previewPath = document.getElementById('previewPath');
-const previewActions = document.getElementById('previewActions');
-const repoInfo = document.getElementById('repoInfo');
-const clearPinsBtn = document.getElementById('clearPins');
+  // Detectăm folderul relativ (ex: /docs/unit1/)
+  const currentPath = window.location.pathname
+    .replace(/^\/+|\/+$/g, "")
+    .split("/")
+    .slice(2) // după /owner/repo/
+    .join("/");
 
-let treeFiles = []; // {path, mode, type, sha, size, url}
-let pins = loadPins(); // {owner/repo:path -> {...}}
+  document.getElementById("repoPath").textContent =
+    "Director: " + (currentPath || "(rădăcină)") +
+    " • Repo: " + defaultOwner + "/" + defaultRepo;
 
-function keyFor(owner, repo) { return owner.trim() + '/' + repo.trim(); }
+  const apiUrl = `https://api.github.com/repos/${defaultOwner}/${defaultRepo}/contents/${currentPath}?ref=${defaultBranch}`;
 
-function savePins() { localStorage.setItem('repo_browser_pins', JSON.stringify(pins)); }
-function loadPins() {
-  try {
-    const raw = localStorage.getItem('repo_browser_pins');
-    return raw ? JSON.parse(raw) : {};
-  } catch (e) { return {}; }
-}
-
-function renderPins(owner, repo) {
-  pinnedArea.innerHTML = '';
-  const k = keyFor(owner, repo);
-  const arr = pins[k] || [];
-  if (!arr.length) {
-    pinnedArea.innerHTML = '<div class="muted small">Nicio pinare.</div>';
-    return;
-  }
-  arr.forEach(f => {
-    const chip = document.createElement('div');
-    chip.className = 'pin-chip';
-    chip.title = f.path;
-    chip.innerHTML = `<div style="font-weight:800">${shortName(f.path)}</div><small>${f.path}</small>`;
-    chip.onclick = () => {
-      // scroll to element if present
-      const el = document.querySelector('[data-path="'+escapeSelector(f.path)+'"]');
-      if (el) {
-        el.scrollIntoView({behavior:'smooth', block:'center'});
-        el.classList.add('highlight');
-        setTimeout(()=>el.classList.remove('highlight'),900);
-      } else {
-        // still preview via raw
-        previewFile(owner, repo, f.path);
-      }
-    };
-    pinnedArea.appendChild(chip);
-  });
-}
-
-function shortName(path) {
-  if (path.length>36) return path.slice(0,18)+'…'+path.slice(-16);
-  return path;
-}
-
-function escapeSelector(s){ return s.replace(/"/g,'\\"'); }
-
-clearPinsBtn.onclick = () => {
-  if (!confirm('Ștergi toate pin-urile locale?')) return;
-  pins = {};
-  savePins();
-  renderPins(ownerEl.value, repoEl.value);
-};
-
-fetchBtn.onclick = async () => {
-  const owner = ownerEl.value.trim();
-  const repo = repoEl.value.trim();
-  const branch = branchEl.value.trim() || 'main';
-  const token = tokenEl.value.trim();
-
-  if (!owner || !repo) {
-    alert('Completează owner și repo.');
-    return;
-  }
-  fileList.innerHTML = '<div class="muted small">Se încarcă fișierele...</div>';
-  repoInfo.textContent = 'loading...';
-
-  try {
-    // 1) Get branch commit sha via refs/heads/:branch to then call trees/:sha?recursive=1 OR call trees/branch?recursive=1 may fail
-    // Simpler: use trees/:branch?recursive=1 - GitHub accepts branch name there.
-    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(branch)}?recursive=1`;
-    const headers = token ? { Authorization: 'token '+token } : {};
-    const res = await fetch(url, { headers });
-    if (res.status === 404) {
-      fileList.innerHTML = `<div class="muted small">Repository or branch not found. Verifică owner/repo/branch.</div>`;
-      repoInfo.textContent = 'not found';
-      return;
-    }
-    if (res.status === 401 || res.status === 403) {
-      const txt = await res.text();
-      fileList.innerHTML = `<div class="muted small">Eroare API: ${res.status}. Verifică token dacă repo este privat. ${txt}</div>`;
-      repoInfo.textContent = 'error';
-      return;
-    }
-
-    const json = await res.json();
-    if (!json.tree) throw new Error('Răspuns nevalid de la API');
-
-    // store
-    treeFiles = json.tree.filter(i => i.type === 'blob'); // only files
-    // sort by path
-    treeFiles.sort((a,b)=> a.path.localeCompare(b.path, undefined, {numeric:true}));
-
-    repoInfo.textContent = `${treeFiles.length} fișiere (branch ${branch})`;
-    renderList(treeFiles, owner, repo, branch);
-    renderPins(owner, repo);
-  } catch (err) {
-    fileList.innerHTML = `<div class="muted small">Eroare: ${err.message}</div>`;
-    repoInfo.textContent = 'error';
-    console.error(err);
-  }
-};
-
-function renderList(list, owner, repo, branch) {
-  fileList.innerHTML = '';
-  if (!list.length) {
-    fileList.innerHTML = '<div class="muted small">Niciun fișier găsit.</div>';
+  const res = await fetch(apiUrl);
+  if (!res.ok) {
+    document.getElementById("list").innerHTML =
+      `<tr><td colspan="3">❌ Nu s-a putut accesa conținutul (${res.status})</td></tr>`;
     return;
   }
 
-  const q = (filterEl.value || '').toLowerCase();
-  const t = typeFilter.value || '';
+  const files = await res.json();
+  const tbody = document.getElementById("list");
+  tbody.innerHTML = "";
 
-  const filtered = list.filter(i => {
-    if (t && !i.path.toLowerCase().endsWith(t)) return false;
-    if (!q) return true;
-    return i.path.toLowerCase().includes(q);
-  });
+  files.sort((a,b)=> a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
 
-  if (!filtered.length) {
-    fileList.innerHTML = '<div class="muted small">Niciun rezultat pentru filtrul dat.</div>';
-    return;
-  }
+  for (const f of files) {
+    const tr = document.createElement("tr");
 
-  filtered.forEach(item => {
-    const row = document.createElement('div');
-    row.className = 'item';
-    row.setAttribute('data-path', item.path);
-
-    const ext = (item.path.split('.').pop() || '').toLowerCase();
-    const icon = document.createElement('div');
-    icon.className = 'ico';
-    icon.textContent = ext || 'file';
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    const b = document.createElement('b');
-    b.textContent = shortName(item.path);
-    const sm = document.createElement('small');
-    sm.className = 'muted';
-    sm.textContent = `${item.path} — size: ${item.size ?? '—'} bytes`;
-    meta.appendChild(b); meta.appendChild(sm);
-
-    const actions = document.createElement('div');
-    actions.className = 'actions';
-
-    const viewBtn = document.createElement('button');
-    viewBtn.className = 'ghost';
-    viewBtn.textContent = 'Preview';
-    viewBtn.onclick = () => previewFile(owner, repo, item.path, branch);
-
-    const openBtn = document.createElement('button');
-    openBtn.className = 'ghost';
-    openBtn.textContent = 'Open';
-    openBtn.onclick = () => {
-      const url = rawUrl(owner, repo, branch, item.path);
-      window.open(url, '_blank');
-    };
-
-    const pinBtn = document.createElement('button');
-    pinBtn.className = 'ghost';
-    pinBtn.textContent = isPinned(owner, repo, item.path) ? 'Unpin' : 'Pin';
-    pinBtn.onclick = () => {
-      togglePin(owner, repo, item.path);
-      pinBtn.textContent = isPinned(owner, repo, item.path) ? 'Unpin' : 'Pin';
-      renderPins(owner, repo);
-    };
-
-    const setIndexBtn = document.createElement('button');
-    setIndexBtn.className = 'ghost';
-    setIndexBtn.textContent = 'Mark as index';
-    setIndexBtn.title = 'Marcarea locală nu schimbă repo; este doar o etichetă pentru tine';
-    setIndexBtn.onclick = () => {
-      localStorage.setItem(keyFor(owner, repo)+'::index', item.path);
-      alert('Fișier marcat local ca index: ' + item.path);
-    };
-
-    actions.appendChild(viewBtn);
-    actions.appendChild(openBtn);
-    actions.appendChild(pinBtn);
-    actions.appendChild(setIndexBtn);
-
-    row.appendChild(icon);
-    row.appendChild(meta);
-    row.appendChild(actions);
-
-    fileList.appendChild(row);
-  });
-}
-
-filterEl.addEventListener('input', () => renderList(treeFiles, ownerEl.value.trim(), repoEl.value.trim(), branchEl.value.trim()));
-typeFilter.addEventListener('change', () => renderList(treeFiles, ownerEl.value.trim(), repoEl.value.trim(), branchEl.value.trim()));
-
-// helpers
-function rawUrl(owner, repo, branch, path) {
-  // raw.githubusercontent.com/owner/repo/branch/path
-  return `https://raw.githubusercontent.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(branch)}/${path}`;
-}
-
-async function previewFile(owner, repo, path, branch='main') {
-  previewPath.textContent = path;
-  previewActions.innerHTML = '';
-  previewContent.textContent = 'Se încarcă...';
-
-  const token = tokenEl.value.trim();
-  const headers = token ? { Authorization: 'token '+token } : {};
-
-  // if image extension, show image link
-  const ext = (path.split('.').pop() || '').toLowerCase();
-  const imageExts = ['png','jpg','jpeg','gif','svg','webp','bmp'];
-  if (imageExts.includes(ext)) {
-    const imgUrl = rawUrl(owner, repo, branch, path);
-    previewContent.innerHTML = `<div style="text-align:center"><img src="${imgUrl}" style="max-width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.03)"/></div>`;
-    previewActions.innerHTML = actionButtons(owner, repo, branch, path);
-    return;
-  }
-
-  // fetch raw via raw.githubusercontent (faster, CORS ok)
-  try {
-    const raw = await fetch(rawUrl(owner, repo, branch, path), { headers });
-    if (!raw.ok) {
-      previewContent.textContent = `Eroare încărcare: ${raw.status} ${raw.statusText}`;
-      previewActions.innerHTML = actionButtons(owner, repo, branch, path);
-      return;
-    }
-    const txt = await raw.text();
-    // limit size for display
-    if (txt.length > 500_000) {
-      previewContent.textContent = 'Fișier prea mare pentru previzualizare ('+Math.round(txt.length/1024)+' KB). Deschide direct.';
+    // --- icon + nume --- //
+    const tdName = document.createElement("td");
+    const link = document.createElement("a");
+    link.textContent = f.name;
+    if (f.type === "dir") {
+      link.href = f.name + "/"; // deschide folderul
+      link.className = "folder";
     } else {
-      // sanitize minimal: we show as text (not innerHTML)
-      previewContent.textContent = txt;
+      link.className = "file";
+      if (f.name.endsWith(".html")) {
+        link.href = f.name; // deschide în browser
+      } else {
+        link.href = f.download_url; // descărcare
+        link.download = f.name;
+      }
     }
-    previewActions.innerHTML = actionButtons(owner, repo, branch, path);
-  } catch (err) {
-    previewContent.textContent = 'Eroare la fetch: ' + err.message;
-    previewActions.innerHTML = actionButtons(owner, repo, branch, path);
-  }
-}
+    tdName.appendChild(link);
 
-function actionButtons(owner, repo, branch, path) {
-  const raw = rawUrl(owner, repo, branch, path);
-  return `
-    <a class="link" href="${raw}" target="_blank" rel="noopener">Open raw</a>
-    &nbsp;•&nbsp;
-    <a class="link" href="https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/blob/${encodeURIComponent(branch)}/${encodeURIComponent(path)}" target="_blank" rel="noopener">View on GitHub</a>
-  `;
-}
+    // --- size --- //
+    const tdSize = document.createElement("td");
+    tdSize.textContent = f.size ? Math.round(f.size / 1024) + " KB" : "-";
 
-// pin logic
-function isPinned(owner, repo, path) {
-  const k = keyFor(owner, repo);
-  const arr = pins[k] || [];
-  return arr.some(p => p.path === path);
-}
-function togglePin(owner, repo, path) {
-  const k = keyFor(owner, repo);
-  if (!pins[k]) pins[k]=[];
-  const i = pins[k].findIndex(p=>p.path===path);
-  if (i>=0) { pins[k].splice(i,1); }
-  else { pins[k].push({path, pinnedAt: Date.now()}); }
-  savePins();
-}
+    // --- actions --- //
+    const tdAction = document.createElement("td");
+    if (f.type === "file") {
+      const btn = document.createElement("button");
+      if (f.name.endsWith(".html")) {
+        btn.textContent = "Deschide";
+        btn.onclick = () => window.open(f.name, "_blank");
+      } else {
+        btn.textContent = "Descarcă";
+        btn.onclick = () => window.open(f.download_url, "_blank");
+      }
+      tdAction.appendChild(btn);
+    } else {
+      tdAction.textContent = "📁";
+    }
 
-// restore last used owner/repo from localStorage
-(function restore() {
-  const last = localStorage.getItem('repo_browser_last');
-  if (last) {
-    try {
-      const obj = JSON.parse(last);
-      if (obj.owner) ownerEl.value = obj.owner;
-      if (obj.repo) repoEl.value = obj.repo;
-      if (obj.branch) branchEl.value = obj.branch;
-    } catch(e){}
+    tr.appendChild(tdName);
+    tr.appendChild(tdSize);
+    tr.appendChild(tdAction);
+    tbody.appendChild(tr);
   }
 })();
-
-// save last on fetch
-(function saveLastOnFetch() {
-  fetchBtn.addEventListener('click', () => {
-    const obj = { owner: ownerEl.value.trim(), repo: repoEl.value.trim(), branch: branchEl.value.trim() };
-    localStorage.setItem('repo_browser_last', JSON.stringify(obj));
-  });
-})();
-
-// keyboard: fetch on Enter in repo input
-repoEl.addEventListener('keydown', (e)=>{ if (e.key==='Enter') fetchBtn.click(); });
-
-// Styling helper for highlight (temporary)
-const style = document.createElement('style');
-style.textContent = '.highlight{box-shadow:0 0 0 3px rgba(239,68,68,0.12) inset;border-radius:10px}';
-document.head.appendChild(style);
-
 </script>
 </body>
 </html>
