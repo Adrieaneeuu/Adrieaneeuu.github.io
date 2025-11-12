@@ -3,26 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>📂 Index general site</title>
+  <title>📂 Index general (fără schimbare de URL)</title>
   <style>
-    body { background:#0d1117; color:#e6edf3; font-family:"Segoe UI",sans-serif;
-           padding:30px; max-width:1000px; margin:auto; }
-    h1 { color:#ff4d4d; font-size:1.8rem; margin-bottom:5px; }
-    p.desc { color:#8b949e; margin-bottom:20px; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th,td { padding:10px; border-bottom:1px solid #30363d; text-align:left; }
-    th { color:#aaa; }
-    a { color:#58a6ff; text-decoration:none; }
-    a:hover { text-decoration:underline; }
-    .folder { color:#ffa657; }
-    .file { color:#9cdcfe; }
-    button { background:#21262d; color:#fff; border:1px solid #30363d; border-radius:6px; padding:5px 10px; cursor:pointer; }
-    button:hover { background:#30363d; }
+    body {
+      background: #0d1117; color: #e6edf3;
+      font-family: "Segoe UI", sans-serif;
+      padding: 30px; max-width: 1000px; margin: auto;
+    }
+    h1 { color: #ff4d4d; font-size: 1.8rem; margin-bottom: 5px; }
+    p.desc { color: #8b949e; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; border-bottom: 1px solid #30363d; text-align: left; }
+    th { color: #aaa; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .folder { color: #ffa657; }
+    .file { color: #9cdcfe; }
+    button {
+      background: #21262d; color: #fff;
+      border: 1px solid #30363d; border-radius: 6px;
+      padding: 5px 10px; cursor: pointer;
+    }
+    button:hover { background: #30363d; }
+    select { background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:6px; padding:5px 8px; }
   </style>
 </head>
 <body>
-<h1>📂 Index general pentru Adrieaneeuu.github.io</h1>
-<p class="desc">Explorează directoarele și fișierele site-ului. Link-urile se deschid direct pe <code>https://adrieaneeuu.github.io/</code></p>
+<h1>📂 Index general al fișierelor site-ului</h1>
+<p class="desc">
+Rămâne tot timpul la <code>https://adrieaneeuu.github.io</code>.  
+Poți alege un director din listă, dar nu se schimbă URL-ul.
+</p>
+
+<label for="folderSelect">Alege director:</label>
+<select id="folderSelect"></select>
 
 <table>
   <thead><tr><th>Nume</th><th>Tip</th><th>Mărime</th><th>Acțiune</th></tr></thead>
@@ -36,15 +50,32 @@
   const branch="main";
   const siteBase="https://adrieaneeuu.github.io";
 
-  async function loadDir(path="") {
-    const res=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`);
-    if(!res.ok){document.getElementById("list").innerHTML=`<tr><td colspan="4">❌ Eroare ${res.status}</td></tr>`;return;}
-    const files=await res.json();
-    const list=document.getElementById("list");
-    list.innerHTML="";
+  const folderSelect=document.getElementById("folderSelect");
+  const list=document.getElementById("list");
 
-    // sortăm: directoare primele
+  // 🔹 obține structura repo-ului (doar directoarele principale)
+  const rootRes=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents?ref=${branch}`);
+  const rootData=await rootRes.json();
+  const dirs=rootData.filter(f=>f.type==="dir");
+  dirs.unshift({name:"(rădăcină)", path:""});
+
+  for(const d of dirs){
+    const opt=document.createElement("option");
+    opt.value=d.path;
+    opt.textContent=d.name;
+    folderSelect.appendChild(opt);
+  }
+
+  folderSelect.onchange=()=>loadDir(folderSelect.value);
+  loadDir("");
+
+  async function loadDir(path){
+    list.innerHTML="<tr><td colspan='4'>Se încarcă...</td></tr>";
+    const res=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`);
+    if(!res.ok){list.innerHTML=`<tr><td colspan='4'>Eroare ${res.status}</td></tr>`;return;}
+    const files=await res.json();
     files.sort((a,b)=>a.type.localeCompare(b.type)||a.name.localeCompare(b.name));
+    list.innerHTML="";
 
     for(const f of files){
       const tr=document.createElement("tr");
@@ -52,15 +83,13 @@
       const tdName=document.createElement("td");
       const link=document.createElement("a");
       link.textContent=f.name;
-
-      if(f.type==="dir"){
-        link.href="#";
-        link.className="folder";
-        link.onclick=(e)=>{e.preventDefault();loadDir(f.path);}
-      } else {
-        link.className="file";
+      link.className=f.type==="dir"?"folder":"file";
+      if(f.type==="file"){
         link.href=`${siteBase}/${f.path}`;
         if(!f.name.endsWith(".html")) link.download=f.name;
+      } else {
+        link.href="#";
+        link.onclick=(e)=>{e.preventDefault();loadDir(f.path);}
       }
       tdName.appendChild(link);
 
@@ -82,33 +111,13 @@
         }
         tdAction.appendChild(btn);
       } else {
-        const backBtn=document.createElement("button");
-        backBtn.textContent="📁 Deschide";
-        backBtn.onclick=()=>loadDir(f.path);
-        tdAction.appendChild(backBtn);
+        tdAction.textContent="📁";
       }
 
       tr.append(tdName,tdType,tdSize,tdAction);
       list.appendChild(tr);
     }
-
-    // buton de întoarcere la directorul anterior
-    if(path){
-      const backRow=document.createElement("tr");
-      const td=document.createElement("td");
-      td.colSpan=4;
-      const back=document.createElement("a");
-      back.href="#";
-      back.textContent="⬅ Înapoi";
-      back.onclick=(e)=>{e.preventDefault();loadDir(path.split("/").slice(0,-1).join("/"));};
-      td.appendChild(back);
-      backRow.appendChild(td);
-      list.prepend(backRow);
-    }
   }
-
-  // pornim din rădăcină
-  loadDir("");
 })();
 </script>
 </body>
