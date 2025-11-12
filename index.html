@@ -3,116 +3,83 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Index auto pentru dir</title>
+  <title>Index automat GitHub Pages</title>
   <style>
     body {
-      background: #0d1117;
-      color: #e6edf3;
-      font-family: "Segoe UI", system-ui, sans-serif;
-      padding: 30px;
-      max-width: 900px;
-      margin: auto;
+      background:#0d1117; color:#e6edf3;
+      font-family:"Segoe UI",system-ui,sans-serif;
+      padding:30px; max-width:900px; margin:auto;
     }
-    h1 { color: #ff4d4d; font-size: 1.8rem; margin-bottom: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #30363d; }
-    th { color: #aaa; font-weight: 600; }
-    a { color: #58a6ff; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .folder { color: #ffa657; }
-    .file { color: #9cdcfe; }
-    .desc { color: #8b949e; font-size: 0.9rem; margin-top: 15px; }
-    button { background: #21262d; color: #fff; border: 1px solid #30363d; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
-    button:hover { background: #30363d; }
+    h1 {color:#ff4d4d;font-size:1.8rem;margin-bottom:10px;}
+    table {width:100%;border-collapse:collapse;margin-top:20px;}
+    th,td {padding:10px;text-align:left;border-bottom:1px solid #30363d;}
+    th {color:#aaa;}
+    a {color:#58a6ff;text-decoration:none;}
+    a:hover {text-decoration:underline;}
+    .folder{color:#ffa657;}
+    .file{color:#9cdcfe;}
+    .desc{color:#8b949e;font-size:0.9rem;margin-top:15px;}
+    button{background:#21262d;color:#fff;border:1px solid #30363d;border-radius:6px;padding:6px 10px;cursor:pointer;}
+    button:hover{background:#30363d;}
   </style>
 </head>
 <body>
-  <h1>📂 Index pentru directorul curent</h1>
-  <div id="repoPath" class="desc">Se upload url</div>
-  <table id="fileTable">
-    <thead><tr><th>Nume</th><th>Dimensiune</th><th>Acțiune</th></tr></thead>
-    <tbody id="list"></tbody>
-  </table>
+<h1>📂 Index pentru directorul curent</h1>
+<div id="repoPath" class="desc">Se detectează...</div>
+<table><thead><tr><th>Nume</th><th>Dimensiune</th><th>Acțiune</th></tr></thead>
+<tbody id="list"></tbody></table>
 
 <script>
-(async () => {
-  // --- CONFIG --- //
-  const defaultOwner = "Adrieaneeuu";   // 👉 pune aici username-ul tău GitHub
-  const defaultRepo  = "Adrieaneeuu.github.io"; // 👉 numele repo-ului
-  const defaultBranch = "main";      // sau 'master' dacă e cazul
-  // ---------------- //
+(async()=>{
+  const defaultOwner="Adrieaneeuu";
+  const defaultRepo="Adrieaneeuu.github.io";
+  const defaultBranch="main";
 
-  // Detectăm folderul relativ (ex: /docs/unit1/)
-  const currentPath = window.location.pathname
-    .replace(/^\/+|\/+$/g, "")
-    .split("/")
-    .slice(2) // după /owner/repo/
-    .join("/");
+  // Extrag calea relativă după domeniu (fără /)
+  let currentPath = window.location.pathname.replace(/^\/+|\/+$/g,"");
+  // elimin prefixul numelui site-ului (ex: Adrieaneeuu.github.io/)
+  if(currentPath.toLowerCase().startsWith(defaultRepo.toLowerCase()+"/"))
+    currentPath=currentPath.slice(defaultRepo.length+1);
 
   document.getElementById("repoPath").textContent =
-    "Dir: " + (currentPath || "(cd ~)") +
-    " • Repo: " + defaultOwner + "/" + defaultRepo;
+    "Director: /"+(currentPath||"(rădăcină)")+
+    "  •  Repo: "+defaultOwner+"/"+defaultRepo;
 
-  const apiUrl = `https://api.github.com/repos/${defaultOwner}/${defaultRepo}/contents/${currentPath}?ref=${defaultBranch}`;
+  const apiUrl=`https://api.github.com/repos/${defaultOwner}/${defaultRepo}/contents/${currentPath}?ref=${defaultBranch}`;
+  const res=await fetch(apiUrl);
+  const list=document.getElementById("list");
 
-  const res = await fetch(apiUrl);
-  if (!res.ok) {
-    document.getElementById("list").innerHTML =
-      `<tr><td colspan="3">❌ Nu s-a putut accesa conținutul (${res.status})</td></tr>`;
-    return;
-  }
+  if(!res.ok){list.innerHTML=`<tr><td colspan="3">❌ Eroare (${res.status})</td></tr>`;return;}
+  const files=await res.json();
+  files.sort((a,b)=>a.type.localeCompare(b.type)||a.name.localeCompare(b.name));
 
-  const files = await res.json();
-  const tbody = document.getElementById("list");
-  tbody.innerHTML = "";
-
-  files.sort((a,b)=> a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
-
-  for (const f of files) {
-    const tr = document.createElement("tr");
-
-    // --- icon + nume --- //
-    const tdName = document.createElement("td");
-    const link = document.createElement("a");
-    link.textContent = f.name;
-    if (f.type === "dir") {
-      link.href = f.name + "/"; // deschide folderul
-      link.className = "folder";
-    } else {
-      link.className = "file";
-      if (f.name.endsWith(".html")) {
-        link.href = f.name; // deschide în browser
-      } else {
-        link.href = f.download_url; // descărcare
-        link.download = f.name;
-      }
+  list.innerHTML="";
+  for(const f of files){
+    const tr=document.createElement("tr");
+    const td1=document.createElement("td");
+    const link=document.createElement("a");
+    link.textContent=f.name;
+    if(f.type==="dir"){link.href=f.name+"/";link.className="folder";}
+    else{
+      link.className="file";
+      link.href=f.name.endsWith(".html")?f.name:f.download_url;
+      if(!f.name.endsWith(".html"))link.download=f.name;
     }
-    tdName.appendChild(link);
+    td1.appendChild(link);
 
-    // --- size --- //
-    const tdSize = document.createElement("td");
-    tdSize.textContent = f.size ? Math.round(f.size / 1024) + " KB" : "-";
+    const td2=document.createElement("td");
+    td2.textContent=f.size?Math.round(f.size/1024)+" KB":"-";
 
-    // --- actions --- //
-    const tdAction = document.createElement("td");
-    if (f.type === "file") {
-      const btn = document.createElement("button");
-      if (f.name.endsWith(".html")) {
-        btn.textContent = "Deschide";
-        btn.onclick = () => window.open(f.name, "_blank");
-      } else {
-        btn.textContent = "Descarcă";
-        btn.onclick = () => window.open(f.download_url, "_blank");
-      }
-      tdAction.appendChild(btn);
-    } else {
-      tdAction.textContent = "📁";
-    }
+    const td3=document.createElement("td");
+    if(f.type==="file"){
+      const btn=document.createElement("button");
+      btn.textContent=f.name.endsWith(".html")?"Deschide":"Descarcă";
+      btn.onclick=()=>window.open(f.name.endsWith(".html")?f.name:f.download_url,"_blank");
+      td3.appendChild(btn);
+    }else td3.textContent="📁";
 
-    tr.appendChild(tdName);
-    tr.appendChild(tdSize);
-    tr.appendChild(tdAction);
-    tbody.appendChild(tr);
+    tr.append(td1,td2,td3);
+    list.appendChild(tr);
   }
 })();
 </script>
