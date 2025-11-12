@@ -3,110 +3,112 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Index pentru director</title>
+  <title>📂 Index general site</title>
   <style>
-    body {
-      background: #0d1117;
-      color: #e6edf3;
-      font-family: "Segoe UI", system-ui, sans-serif;
-      padding: 30px;
-      max-width: 900px;
-      margin: auto;
-    }
-    h1 { color: #ff4d4d; font-size: 1.8rem; margin-bottom: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #30363d; }
-    th { color: #aaa; }
-    a { color: #58a6ff; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .folder { color: #ffa657; }
-    .file { color: #9cdcfe; }
-    .desc { color: #8b949e; font-size: 0.9rem; margin-top: 15px; }
-    button { background: #21262d; color: #fff; border: 1px solid #30363d; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
-    button:hover { background: #30363d; }
+    body { background:#0d1117; color:#e6edf3; font-family:"Segoe UI",sans-serif;
+           padding:30px; max-width:1000px; margin:auto; }
+    h1 { color:#ff4d4d; font-size:1.8rem; margin-bottom:5px; }
+    p.desc { color:#8b949e; margin-bottom:20px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th,td { padding:10px; border-bottom:1px solid #30363d; text-align:left; }
+    th { color:#aaa; }
+    a { color:#58a6ff; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .folder { color:#ffa657; }
+    .file { color:#9cdcfe; }
+    button { background:#21262d; color:#fff; border:1px solid #30363d; border-radius:6px; padding:5px 10px; cursor:pointer; }
+    button:hover { background:#30363d; }
   </style>
 </head>
 <body>
-  <h1>📂 Index pentru directorul curent</h1>
-  <div id="repoPath" class="desc">Se încarcă...</div>
-  <table>
-    <thead><tr><th>Nume</th><th>Dimensiune</th><th>Acțiune</th></tr></thead>
-    <tbody id="list"></tbody>
-  </table>
+<h1>📂 Index general pentru Adrieaneeuu.github.io</h1>
+<p class="desc">Explorează directoarele și fișierele site-ului. Link-urile se deschid direct pe <code>https://adrieaneeuu.github.io/</code></p>
+
+<table>
+  <thead><tr><th>Nume</th><th>Tip</th><th>Mărime</th><th>Acțiune</th></tr></thead>
+  <tbody id="list"><tr><td colspan="4">Se încarcă...</td></tr></tbody>
+</table>
 
 <script>
-(async () => {
-  const defaultOwner = "Adrieaneeuu";
-  const defaultRepo = "Adrieaneeuu.github.io";
-  const defaultBranch = "main";
-  const siteBase = "https://adrieaneeuu.github.io"; // 🌐 baza domeniului final
+(async()=>{
+  const owner="Adrieaneeuu";
+  const repo="Adrieaneeuu.github.io";
+  const branch="main";
+  const siteBase="https://adrieaneeuu.github.io";
 
-  // extrage calea relativă din URL (ex: l.rom/)
-  let currentPath = window.location.pathname.replace(/^\/+|\/+$/g, "");
-  if (currentPath.toLowerCase().startsWith(defaultRepo.toLowerCase() + "/"))
-    currentPath = currentPath.slice(defaultRepo.length + 1);
+  async function loadDir(path="") {
+    const res=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`);
+    if(!res.ok){document.getElementById("list").innerHTML=`<tr><td colspan="4">❌ Eroare ${res.status}</td></tr>`;return;}
+    const files=await res.json();
+    const list=document.getElementById("list");
+    list.innerHTML="";
 
-  document.getElementById("repoPath").textContent =
-    "Director: /" + (currentPath || "(rădăcină)") +
-    "  •  Repo: " + defaultOwner + "/" + defaultRepo;
+    // sortăm: directoare primele
+    files.sort((a,b)=>a.type.localeCompare(b.type)||a.name.localeCompare(b.name));
 
-  const apiUrl = `https://api.github.com/repos/${defaultOwner}/${defaultRepo}/contents/${currentPath}?ref=${defaultBranch}`;
-  const res = await fetch(apiUrl);
-  const tbody = document.getElementById("list");
+    for(const f of files){
+      const tr=document.createElement("tr");
 
-  if (!res.ok) {
-    tbody.innerHTML = `<tr><td colspan="3">❌ Eroare (${res.status})</td></tr>`;
-    return;
-  }
+      const tdName=document.createElement("td");
+      const link=document.createElement("a");
+      link.textContent=f.name;
 
-  const files = await res.json();
-  files.sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
-
-  tbody.innerHTML = "";
-
-  for (const f of files) {
-    const tr = document.createElement("tr");
-
-    const tdName = document.createElement("td");
-    const link = document.createElement("a");
-    link.textContent = f.name;
-
-    if (f.type === "dir") {
-      link.href = "./" + f.name + "/"; // navigare locală
-      link.className = "folder";
-    } else {
-      link.className = "file";
-      // construim link absolut corect spre GitHub Pages
-      const fileUrl = `${siteBase}/${currentPath ? currentPath + "/" : ""}${f.name}`;
-
-      link.href = fileUrl;
-      if (!f.name.endsWith(".html")) link.download = f.name;
-    }
-    tdName.appendChild(link);
-
-    const tdSize = document.createElement("td");
-    tdSize.textContent = f.size ? Math.round(f.size / 1024) + " KB" : "-";
-
-    const tdAction = document.createElement("td");
-    if (f.type === "file") {
-      const btn = document.createElement("button");
-      if (f.name.endsWith(".html")) {
-        btn.textContent = "Deschide";
-        btn.onclick = () =>
-          window.open(`${siteBase}/${currentPath ? currentPath + "/" : ""}${f.name}`, "_blank");
+      if(f.type==="dir"){
+        link.href="#";
+        link.className="folder";
+        link.onclick=(e)=>{e.preventDefault();loadDir(f.path);}
       } else {
-        btn.textContent = "Descarcă";
-        btn.onclick = () =>
-          window.open(`${siteBase}/${currentPath ? currentPath + "/" : ""}${f.name}`, "_blank");
+        link.className="file";
+        link.href=`${siteBase}/${f.path}`;
+        if(!f.name.endsWith(".html")) link.download=f.name;
       }
-      tdAction.appendChild(btn);
-    } else {
-      tdAction.textContent = "📁";
+      tdName.appendChild(link);
+
+      const tdType=document.createElement("td");
+      tdType.textContent=f.type==="dir"?"Director":"Fișier";
+
+      const tdSize=document.createElement("td");
+      tdSize.textContent=f.size?Math.round(f.size/1024)+" KB":"-";
+
+      const tdAction=document.createElement("td");
+      if(f.type==="file"){
+        const btn=document.createElement("button");
+        if(f.name.endsWith(".html")){
+          btn.textContent="Deschide";
+          btn.onclick=()=>window.open(`${siteBase}/${f.path}`,"_blank");
+        }else{
+          btn.textContent="Descarcă";
+          btn.onclick=()=>window.open(`${siteBase}/${f.path}`,"_blank");
+        }
+        tdAction.appendChild(btn);
+      } else {
+        const backBtn=document.createElement("button");
+        backBtn.textContent="📁 Deschide";
+        backBtn.onclick=()=>loadDir(f.path);
+        tdAction.appendChild(backBtn);
+      }
+
+      tr.append(tdName,tdType,tdSize,tdAction);
+      list.appendChild(tr);
     }
 
-    tr.append(tdName, tdSize, tdAction);
-    tbody.appendChild(tr);
+    // buton de întoarcere la directorul anterior
+    if(path){
+      const backRow=document.createElement("tr");
+      const td=document.createElement("td");
+      td.colSpan=4;
+      const back=document.createElement("a");
+      back.href="#";
+      back.textContent="⬅ Înapoi";
+      back.onclick=(e)=>{e.preventDefault();loadDir(path.split("/").slice(0,-1).join("/"));};
+      td.appendChild(back);
+      backRow.appendChild(td);
+      list.prepend(backRow);
+    }
   }
+
+  // pornim din rădăcină
+  loadDir("");
 })();
 </script>
 </body>
