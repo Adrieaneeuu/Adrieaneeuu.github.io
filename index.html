@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Index automat pentru director</title>
+  <title>Index auto pentru dir</title>
   <style>
     body {
       background: #0d1117;
@@ -28,7 +28,7 @@
 </head>
 <body>
   <h1>📂 Index pentru directorul curent</h1>
-  <div id="repoPath" class="desc">Se detectează calea și repo-ul...</div>
+  <div id="repoPath" class="desc">Se upload url</div>
   <table id="fileTable">
     <thead><tr><th>Nume</th><th>Dimensiune</th><th>Acțiune</th></tr></thead>
     <tbody id="list"></tbody>
@@ -50,7 +50,7 @@
     .join("/");
 
   document.getElementById("repoPath").textContent =
-    "Director: " + (currentPath || "(rădăcină)") +
+    "Dir: " + (currentPath || "(cd ~)") +
     " • Repo: " + defaultOwner + "/" + defaultRepo;
 
   const apiUrl = `https://api.github.com/repos/${defaultOwner}/${defaultRepo}/contents/${currentPath}?ref=${defaultBranch}`;
