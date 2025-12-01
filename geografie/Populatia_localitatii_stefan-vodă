@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Proiect: Populația localității Ștefan Vodă</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Raleway:wght@400;500;600&display=swap');
+    :root {
+      --bg: #fff4d8;
+      --card-bg: #ffffff;
+      --accent: #0fa16d;
+      --accent-dark: #0b7d53;
+      --highlight: #4de1a1;
+      --shadow: rgba(15, 161, 109, 0.15);
+      --muted: #5c6b63;
+      --text: #1b2b23;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, var(--bg), #fff);
+      color: var(--text);
+      font-family: 'Raleway', sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+      position: relative;
+    }
+    .page-corner {
+      position: absolute;
+      width: 40px; height: 40px;
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      opacity: 0.7;
+    }
+    .corner-tl { top: 20px; left: 20px; transform: rotate(-15deg); }
+    .corner-tr { top: 20px; right: 20px; transform: rotate(15deg); }
+    .corner-bl { bottom: 20px; left: 20px; transform: rotate(15deg); }
+    .corner-br { bottom: 20px; right: 20px; transform: rotate(-15deg); }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 10;
+    }
+    header {
+      text-align: center;
+      padding: 30px;
+      background: var(--card-bg);
+      border-radius: 18px;
+      border: 2px solid var(--accent);
+      box-shadow: 0 8px 25px var(--shadow);
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, transparent, var(--highlight), transparent);
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.6rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+      animation: fadeInDown 1s ease-out forwards;
+      opacity: 0;
+    }
+    .subtitle {
+      font-size: 1.4rem;
+      color: var(--accent-dark);
+      font-weight: 700;
+      animation: slideIn 1.2s ease-out forwards;
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 25px 0 28px;
+    }
+    .nav-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      box-shadow: 0 3px 8px rgba(15, 161, 109, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    .nav-btn:hover {
+      background: var(--accent);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(15, 161, 109, 0.35);
+    }
+    .nav-btn::after {
+      content: "";
+      position: absolute;
+      top: -50%; left: -60%;
+      width: 20px; height: 200%;
+      background: rgba(255,255,255,0.3);
+      transform: rotate(25deg);
+      transition: all 0.6s;
+    }
+    .nav-btn:hover::after { left: 150%; }
+    .section {
+      display: none;
+      padding: 28px;
+      background: var(--card-bg);
+      border-radius: 18px;
+      margin: 25px 0;
+      border: 2px solid var(--accent);
+      box-shadow: 0 8px 25px rgba(15, 161, 109, 0.18);
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 0.6s ease;
+      position: relative;
+    }
+    .section.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .section h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--accent);
+      font-size: 2.0rem;
+      margin-bottom: 20px;
+      text-align: center;
+      border-bottom: 1px dashed var(--highlight);
+      padding-bottom: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 22px;
+      margin-top: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(15, 161, 109, 0.25);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .card h3 {
+      font-family: 'Playfair Display', serif;
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-size: 1.4rem;
+    }
+    p.small, ul.small, li.small {
+      font-size: 0.93rem;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid rgba(0,0,0,0.08);
+      font-size: 0.92rem;
+      text-align: center;
+    }
+    th {
+      background: linear-gradient(180deg, rgba(77,225,161,0.2), transparent);
+      font-weight: 600;
+      color: var(--accent-dark);
+    }
+    footer {
+      text-align: center;
+      padding: 25px 0 15px;
+      color: var(--accent);
+      font-weight: 600;
+      font-style: italic;
+    }
+    @media (max-width: 768px) {
+      h1 { font-size: 2.1rem; }
+      .subtitle { font-size: 1.2rem; }
+      .nav-btn { padding: 8px 16px; font-size: 0.95rem; }
+      .grid { grid-template-columns: 1fr; }
+      .section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-corner corner-tl"></div>
+  <div class="page-corner corner-tr"></div>
+  <div class="page-corner corner-bl"></div>
+  <div class="page-corner corner-br"></div>
+  <div class="container">
+    <header>
+      <h1>Populația localității Ștefan Vodă</h1>
+      <div class="subtitle">Republica Moldova</div>
+    </header>
+    <nav>
+      <button class="nav-btn" onclick="showSection('dinamica')">1. Dinamica populației</button>
+      <button class="nav-btn" onclick="showSection('natural')">2. Mișcarea naturală</button>
+      <button class="nav-btn" onclick="showSection('migratie')">3. Migrația</button>
+      <button class="nav-btn" onclick="showSection('varste')">4. Structura pe vârste</button>
+      <button class="nav-btn" onclick="showSection('resurse')">5. Resurse umane</button>
+      <button class="nav-btn" onclick="showSection('etnie')">6. Structura etnică</button>
+      <button class="nav-btn" onclick="showSection('perspective')">7. Perspective</button>
+      <button class="nav-btn" onclick="showSection('author')">8. Autori</button>
+    </nav>
+
+    <section id="dinamica" class="section active">
+      <h2>Dinamica populației (2016–2024)</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Date reale (BNStat)</h3>
+          <table>
+            <thead><tr><th>An</th><th>Populație rezidentă</th></tr></thead>
+            <tbody>
+              <tr><td>2016</td><td>0.000</td></tr>
+              <tr><td>2017</td><td>0.000</td></tr>
+              <tr><td>2018</td><td>0.000</td></tr>
+              <tr><td>2019</td><td>0.000</td></tr>
+              <tr><td>2020</td><td>0.000</td></tr>
+              <tr><td>2021</td><td>0.000</td></tr>
+              <tr><td>2022</td><td>0.000</td></tr>
+              <tr><td>2023</td><td>0.000</td></tr>
+              <tr><td>2024</td><td>0.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Observații</h3>
+          <p class="small">text Putin</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="natural" class="section">
+      <h2>Mișcarea naturală (date reale)</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Nașteri / Decese</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>An</th><th>Nașteri</th><th>Decese</th>
+                <th>Rate nașteri (‰)</th><th>Rate decese (‰)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>2020</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td></tr>
+              <tr><td>2021</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td></tr>
+              <tr><td>2022</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td></tr>
+              <tr><td>2023</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Analiză</h3>
+          <p class="small">text Putin</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="migratie" class="section">
+      <h2>Migrația populației</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Sosiri / Plecări</h3>
+          <table>
+            <thead><tr><th>An</th><th>Sosiri</th><th>Plecări</th><th>Sold</th></tr></thead>
+            <tbody>
+              <tr><td>2020</td><td>0.000</td><td>0.000</td><td>0.000</td></tr>
+              <tr><td>2021</td><td>0.000</td><td>0.000</td><td>0.000</td></tr>
+              <tr><td>2022</td><td>0.000</td><td>0.000</td><td>0.000</td></tr>
+              <tr><td>2023</td><td>0.000</td><td>0.000</td><td>0.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Observații</h3>
+          <p class="small">text Putin</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="varste" class="section">
+      <h2>Structura pe grupe de vârstă</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Tabel pe grupe</h3>
+          <table>
+            <thead>
+              <tr><th>An</th><th>Grupă</th><th>Bărbați</th><th>Femei</th><th>Total</th><th>%</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.000%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Piramidă populațională</h>
+          <p class="small">text Putin</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="resurse" class="section">
+      <h2>Resurse umane și activități</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Activități principale</h3>
+          <ul class="small">
+            <li>text Putin</li>
+            <li>text Putin</li>
+            <li>text Putin</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Realități actuale</h3>
+          <p class="small">text mult</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="etnie" class="section">
+      <h2>Structura etnică și lingvistică</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Etnie (recensământ)</h3>
+          <table>
+            <thead><tr><th>Etnie</th><th>Număr</th><th>%</th></tr></thead>
+            <tbody>
+              <tr><td>0.000</td><td>0.000</td><td>0.000%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Observații</h3>
+          <p class="small">text mult</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="perspective" class="section">
+      <h2>Perspective și măsuri</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Măsuri recomandate</h3>
+          <ul class="small">
+            <li>text mult</li>
+            <li>text mult</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Direcție generală</h3>
+          <p class="small">text Putin</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUTORI -->
+    <section id="author" class="section">
+      <h2>👥 Autori</h2>
+      <div style="text-align:center; margin:20px 0;">
+        <p style="font-size:1.3rem; margin-bottom:12px;">Acest proiect a fost realizat de:</p>
+        <p style="font-family:'Playfair Display',serif; font-size:2.0rem; color:var(--accent); margin:8px 0;">
+          Mitrofanov Adrian
+        </p>
+        <p style="font-family:'Playfair Display',serif; font-size:2.0rem; color:var(--accent); margin:8px 0;">
+          Bolandău Alexandru
+        </p>
+        <p style="font-style:italic; color:var(--muted); margin-top:16px; font-size:1.2rem;">
+          Evaluator: Olga Vozian
+        </p>
+        <p style="font-weight:700; margin-top:12px; font-size:1.3rem;">
+          elevi în clasa a IX-B
+        </p>
+      </div>
+      <div style="margin-top:20px; padding:16px; background:white; border-radius:12px; border:2px solid var(--accent);">
+        <h3 style="text-align:center; color:var(--accent); margin-bottom:10px; font-family:'Playfair Display',serif;">Concluzie</h3>
+        <p style="text-align:center; font-style:italic; line-height:1.5; font-size:1.05rem;">
+          text mult
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      Proiect — Ștefan Vodă • 2025
+    </footer>
+  </div>
+
+  <script>
+    function showSection(id) {
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+  </script>
+</body>
+</html>
