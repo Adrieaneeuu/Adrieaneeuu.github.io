@@ -204,8 +204,8 @@ footer {
     <h2>Dinamica populației (2016–2024)</h2>
     <div class="grid">
         <div class="card">
-            <h3>Date reale (BNStat)</h3>
-            <p class="small">Seria de timp: 2016–2024 — valori reale ajustate conform datelor teritoriale BNStat.</p>
+            <h3>Date reale (ChatGPT)</h3>
+            <p class="small">Seria de timp: 2016–2024 valori reale ajustate conform datelor teritoriale ChatGPT.</p>
             <table>
                 <thead>
                     <tr><th>An</th><th>Populație rezidentă</th></tr>
@@ -223,10 +223,10 @@ footer {
 <!-- ==================== 2. MIȘCAREA NATURALĂ ================== -->
 <!-- ============================================================= -->
 <section id="natural" class="section">
-    <h2>Mișcarea naturală (date reale)</h2>
+    <h2>Mișcarea naturală</h2>
     <div class="grid">
         <div class="card">
-            <h3>Nașteri / Decese</h3>
+            <h3>Nașteri / Decese (ChatGPT)</h3>
             <table>
                 <thead>
                     <tr>
@@ -253,7 +253,7 @@ footer {
     <h2>Migrația populației</h2>
     <div class="grid">
         <div class="card">
-            <h3>Sosiri / Plecări</h3>
+            <h3>Sosiri / Plecări (ChatGPT)</h3>
             <table>
                 <thead>
                     <tr><th>An</th><th>Sosiri</th><th>Plecări</th><th>Sold</th></tr>
@@ -277,7 +277,7 @@ footer {
     <h2>Structura pe grupe de vârstă</h2>
     <div class="grid">
         <div class="card">
-            <h3>Tabel pe grupe</h3>
+            <h3>Tabel pe grupe (ChatGPT)</h3>
             <table>
                 <thead>
                     <tr><th>An</th><th>Grupă</th><th>Bărbați</th><th>Femei</th><th>Total</th><th>%</th></tr>
@@ -288,6 +288,9 @@ footer {
         <div class="card">
             <h3>Piramidă populațională</h3>
             <select id="ageYear" style="margin-bottom:8px;padding:6px 10px;border-radius:6px;">
+                <option value="2016">2016</option>
+                <option value="2020">2020</option>
+                <option value="2024">2024</option>
             </select>
             <div class="chart">
                 <svg id="pyramid"></svg>
@@ -304,11 +307,11 @@ footer {
         <div class="card">
             <h3>Activități principale</h3>
             <ul class="small">
-                <li>Agricultură (culturi, viticultură, ferme mici)</li>
+                <li>Agricultură (ferme mici)</li>
                 <li>Comerț local și servicii</li>
-                <li>Învățământ (grădinițe, școală, liceu)</li>
-                <li>Sănătate — punct medical, farmacie</li>
-                <li>Transport, construcții, lucrări locale</li>
+                <li>Învățământ (grădinițe, școală rusă, liceu)</li>
+                <li>Sănătate punct medical, farmacie</li>
+                <li>Transport, lucrări locale</li>
             </ul>
         </div>
         <div class="card">
@@ -328,7 +331,7 @@ footer {
     <h2>Structura etnică și lingvistică</h2>
     <div class="grid">
         <div class="card">
-            <h3>Etnie (recensământ)</h3>
+            <h3>Etnie (ChatGPT)</h3>
             <table>
                 <thead><tr><th>Etnie</th><th>Număr</th><th>%</th></tr></thead>
                 <tbody id="ethTable"></tbody>
@@ -337,7 +340,7 @@ footer {
         <div class="card">
             <h3>Observații</h3>
             <p class="small">
-                Limba dominantă: româna/moldoveneasca.  
+                Limba dominantă: româna/rusa.  
                 Religia majoritară: ortodoxă.
             </p>
         </div>
@@ -392,8 +395,8 @@ footer {
   <div style="margin-top:20px; padding:16px; background:white; border-radius:12px; border:2px solid var(--accent);">
     <h3 style="text-align:center; color:var(--accent); margin-bottom:10px; font-family:'Playfair Display',serif;">Concluzie</h3>
     <p style="text-align:center; font-style:italic; line-height:1.5; font-size:1.05rem;">
-      Tendințele demografice ale localității Ștefan Vodă reflectă realitățile rurale actuale. 
-      Prin măsuri adecvate, se poate inversa scăderea populației și stimula dezvoltarea locală.
+      Tendințele demografice ale localității Ștefan Vodă reflectă realitățile rurale actuale
+      prin măsuri adecvate, se poate inversa scăderea populației și stimula dezvoltarea locală.
     </p>
   </div>
 </section>
@@ -416,18 +419,21 @@ const popData = [
     {year:2023, pop:7320},
     {year:2024, pop:7261}
 ];
+
 const natData = [
     {year:2020, births:58, deaths:93},
     {year:2021, births:54, deaths:98},
     {year:2022, births:56, deaths:95},
     {year:2023, births:52, deaths:90}
 ];
+
 const migData = [
     {year:2020, in:42, out:128},
     {year:2021, in:28, out:165},
     {year:2022, in:30, out:140},
     {year:2023, in:36, out:150}
 ];
+
 const ageSeries = {
     2016: [
         {group:"0–14", m:640, f:620},
@@ -448,23 +454,28 @@ const ageSeries = {
         {group:"65+", m:460, f:530}
     ]
 };
+
 const ethData = [
     {name:"Moldoveni/Români", num:5900},
     {name:"Ucraineni", num:800},
     {name:"Ruși", num:400},
     {name:"Alții", num:161}
 ];
+
 /* ===================================================== */
 /* =============== POPULARE TABELE ===================== */
 /* ===================================================== */
 function fillPop() {
     const tbody = document.getElementById("popTable");
+    tbody.innerHTML = "";
     popData.forEach(d => {
         tbody.innerHTML += `<tr><td>${d.year}</td><td>${d.pop.toLocaleString('ro-RO')}</td></tr>`;
     });
 }
+
 function fillNat() {
     const tbody = document.getElementById("natTable");
+    tbody.innerHTML = "";
     natData.forEach(d => {
         const pop = popData.find(p => p.year === d.year)?.pop || 7400;
         const natal = ((d.births/pop)*1000).toFixed(1);
@@ -475,133 +486,278 @@ function fillNat() {
         `;
     });
 }
+
 function fillMig() {
     const tbody = document.getElementById("migTable");
+    tbody.innerHTML = "";
     migData.forEach(d => {
         tbody.innerHTML += `<tr><td>${d.year}</td><td>${d.in}</td><td>${d.out}</td><td>${d.in - d.out}</td></tr>`;
     });
 }
+
 function fillEth() {
     const tbody = document.getElementById("ethTable");
+    tbody.innerHTML = "";
     const total = ethData.reduce((s,e)=>s+e.num,0);
     ethData.forEach(e => {
         tbody.innerHTML += `<tr><td>${e.name}</td><td>${e.num}</td><td>${(e.num/total*100).toFixed(1)}%</td></tr>`;
     });
 }
-function fillAge(year) {
+
+function fillAgeTable() {
     const tbody = document.getElementById("ageTable");
     tbody.innerHTML = "";
-    const arr = ageSeries[year];
-    const total = arr.reduce((s,x)=>s + x.m + x.f, 0);
-    arr.forEach(g => {
-        const tot = g.m + g.f;
+    
+    // Adăugăm toate datele pentru toți anii
+    Object.keys(ageSeries).forEach(year => {
+        const arr = ageSeries[year];
+        const totalAn = arr.reduce((s, x) => s + x.m + x.f, 0);
+        
+        arr.forEach(g => {
+            const tot = g.m + g.f;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${year}</td>
+                    <td>${g.group}</td>
+                    <td>${g.m.toLocaleString('ro-RO')}</td>
+                    <td>${g.f.toLocaleString('ro-RO')}</td>
+                    <td>${tot.toLocaleString('ro-RO')}</td>
+                    <td>${((tot/totalAn)*100).toFixed(1)}%</td>
+                </tr>`;
+        });
+        
+        // Adăugăm un rând separator între ani
         tbody.innerHTML += `
-            <tr>
-                <td>${year}</td><td>${g.group}</td>
-                <td>${g.m}</td><td>${g.f}</td>
-                <td>${tot}</td><td>${(tot/total*100).toFixed(1)}%</td>
-            </tr>`;
+            <tr style="background-color: rgba(15, 161, 109, 0.05);">
+                <td colspan="2"><strong>Total ${year}</strong></td>
+                <td><strong>${arr.reduce((s, x) => s + x.m, 0).toLocaleString('ro-RO')}</strong></td>
+                <td><strong>${arr.reduce((s, x) => s + x.f, 0).toLocaleString('ro-RO')}</strong></td>
+                <td><strong>${totalAn.toLocaleString('ro-RO')}</strong></td>
+                <td><strong>100%</strong></td>
+            </tr>
+            <tr style="height: 8px; background-color: transparent;"><td colspan="6"></td></tr>`;
     });
 }
+
 /* ===================================================== */
 /* ================= GRAFIC POPULATIE ================== */
 /* ===================================================== */
 function drawPopChart() {
     const canvas = document.getElementById("popChart");
+    if (!canvas) return;
+    
     const ctx = canvas.getContext("2d");
     canvas.width = canvas.clientWidth * 2;
     canvas.height = canvas.clientHeight * 2;
     ctx.scale(2,2);
+    
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     const pad = 50;
     const max = Math.max(...popData.map(p => p.pop));
     const min = Math.min(...popData.map(p => p.pop));
+    
+    // Clear canvas
     ctx.clearRect(0,0,w,h);
+    
+    // Draw grid
     ctx.strokeStyle = "#e0f7ed";
     ctx.lineWidth = 1;
     ctx.strokeRect(pad, pad, w-pad*2, h-pad*2);
+    
+    // Draw line
     ctx.beginPath();
     ctx.lineWidth = 3;
     ctx.strokeStyle = "#0fa16d";
+    
     popData.forEach((d,i)=>{
         const x = pad + i*( (w-pad*2)/(popData.length-1) );
         const y = pad + (max - d.pop)/(max - min) * (h-pad*2);
+        
         if(i===0) ctx.moveTo(x,y);
         else ctx.lineTo(x,y);
+        
+        // Draw points
         ctx.fillStyle = "#4de1a1";
         ctx.beginPath();
         ctx.arc(x,y,4,0,Math.PI*2);
         ctx.fill();
     });
+    
     ctx.stroke();
+    
+    // Add labels
+    ctx.fillStyle = "#0b7d53";
+    ctx.font = "12px Raleway";
+    ctx.textAlign = "center";
+    
+    // X axis labels (years)
+    popData.forEach((d,i)=>{
+        const x = pad + i*( (w-pad*2)/(popData.length-1) );
+        ctx.fillText(d.year, x, h-pad+20);
+    });
+    
+    // Y axis labels (population)
+    for(let i = 0; i <= 5; i++) {
+        const value = min + (max-min) * (i/5);
+        const y = pad + (h-pad*2) * (i/5);
+        ctx.fillText(Math.round(value).toLocaleString('ro-RO'), pad-30, y+4);
+    }
 }
+
 /* ===================================================== */
 /* ================= PIRAMIDA POP. ===================== */
 /* ===================================================== */
 function drawPyramid(year) {
     const svg = document.getElementById("pyramid");
+    if (!svg) return;
+    
     svg.innerHTML = "";
-    const W = svg.clientWidth;
-    const H = svg.clientHeight;
+    const W = svg.clientWidth || 400;
+    const H = svg.clientHeight || 300;
+    
     const data = ageSeries[year];
     const total = data.reduce((s,x)=>s+x.m+x.f,0);
-    const rowH = (H-20)/data.length;
-    const maxBar = 160;
+    const rowH = (H-40)/data.length;
+    const maxBar = W/2 - 80;
     const center = W/2;
+    
+    // Add title
+    const title = document.createElementNS("http://www.w3.org/2000/svg","text");
+    title.textContent = `tabelul de vârstă - ${year}`;
+    title.setAttribute("x", center);
+    title.setAttribute("y", 20);
+    title.setAttribute("text-anchor", "middle");
+    title.setAttribute("font-size", "14");
+    title.setAttribute("font-weight", "bold");
+    title.setAttribute("fill", "#0b7d53");
+    svg.appendChild(title);
+    
+    // Add male/female labels
+    const maleLabel = document.createElementNS("http://www.w3.org/2000/svg","text");
+    maleLabel.textContent = "Bărbați";
+    maleLabel.setAttribute("x", center - 40);
+    maleLabel.setAttribute("y", 35);
+    maleLabel.setAttribute("text-anchor", "middle");
+    maleLabel.setAttribute("font-size", "12");
+    maleLabel.setAttribute("fill", "#0b7d53");
+    svg.appendChild(maleLabel);
+    
+    const femaleLabel = document.createElementNS("http://www.w3.org/2000/svg","text");
+    femaleLabel.textContent = "Femei";
+    femaleLabel.setAttribute("x", center + 40);
+    femaleLabel.setAttribute("y", 35);
+    femaleLabel.setAttribute("text-anchor", "middle");
+    femaleLabel.setAttribute("font-size", "12");
+    femaleLabel.setAttribute("fill", "#4de1a1");
+    svg.appendChild(femaleLabel);
+    
+    // Draw pyramid bars
     data.forEach((g,i)=>{
-        const y = 10 + i*rowH;
+        const y = 40 + i*rowH;
         const wM = (g.m/total)*maxBar;
         const wF = (g.f/total)*maxBar;
+        
+        // Male bar
         const rectM = document.createElementNS("http://www.w3.org/2000/svg","rect");
         rectM.setAttribute("x", center - wM);
         rectM.setAttribute("y", y);
         rectM.setAttribute("width", wM);
         rectM.setAttribute("height", rowH - 6);
         rectM.setAttribute("fill", "#0fa16d");
+        rectM.setAttribute("stroke", "#0b7d53");
+        rectM.setAttribute("stroke-width", "1");
         svg.appendChild(rectM);
+        
+        // Female bar
         const rectF = document.createElementNS("http://www.w3.org/2000/svg","rect");
         rectF.setAttribute("x", center);
         rectF.setAttribute("y", y);
         rectF.setAttribute("width", wF);
         rectF.setAttribute("height", rowH - 6);
         rectF.setAttribute("fill", "#4de1a1");
+        rectF.setAttribute("stroke", "#0b7d53");
+        rectF.setAttribute("stroke-width", "1");
         svg.appendChild(rectF);
+        
+        // Age group label
         const label = document.createElementNS("http://www.w3.org/2000/svg","text");
         label.textContent = g.group;
         label.setAttribute("x", center);
-        label.setAttribute("y", y + rowH/2);
+        label.setAttribute("y", y + rowH/2 + 4);
         label.setAttribute("text-anchor", "middle");
         label.setAttribute("font-size", "12");
+        label.setAttribute("fill", "#1b2b23");
         svg.appendChild(label);
+        
+        // Male count
+        const maleCount = document.createElementNS("http://www.w3.org/2000/svg","text");
+        maleCount.textContent = g.m;
+        maleCount.setAttribute("x", center - wM - 5);
+        maleCount.setAttribute("y", y + rowH/2 + 4);
+        maleCount.setAttribute("text-anchor", "end");
+        maleCount.setAttribute("font-size", "11");
+        maleCount.setAttribute("fill", "#0b7d53");
+        svg.appendChild(maleCount);
+        
+        // Female count
+        const femaleCount = document.createElementNS("http://www.w3.org/2000/svg","text");
+        femaleCount.textContent = g.f;
+        femaleCount.setAttribute("x", center + wF + 25);
+        femaleCount.setAttribute("y", y + rowH/2 + 4);
+        femaleCount.setAttribute("text-anchor", "start");
+        femaleCount.setAttribute("font-size", "11");
+        femaleCount.setAttribute("fill", "#0b7d53");
+        svg.appendChild(femaleCount);
     });
 }
+
 /* ===================================================== */
 /* ==================== NAVIGARE ======================= */
 /* ===================================================== */
 function showSection(id) {
     document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
-    if(id === "dinamica") drawPopChart();
-    if(id === "varste") drawPyramid(document.getElementById("ageYear").value);
+    
+    if(id === "dinamica") {
+        drawPopChart();
+    }
+    if(id === "varste") {
+        const selectedYear = document.getElementById("ageYear").value;
+        drawPyramid(selectedYear);
+    }
 }
+
 /* ===================================================== */
 /* ==================== INIT APP ======================= */
 /* ===================================================== */
 document.addEventListener("DOMContentLoaded", ()=>{
+    // Fill tables
     fillPop();
     fillNat();
     fillMig();
     fillEth();
-    // vârste
-    const sel = document.getElementById("ageYear");
-    Object.keys(ageSeries).forEach(y=>{
-        sel.innerHTML += `<option>${y}</option>`;
+    fillAgeTable();
+    
+    // Initialize pyramid
+    const ageYearSelect = document.getElementById("ageYear");
+    ageYearSelect.addEventListener("change", () => {
+        drawPyramid(ageYearSelect.value);
     });
-    sel.addEventListener("change", ()=> drawPyramid(sel.value));
-    fillAge("2016");
-    drawPyramid("2016");
+    
+    // Draw initial charts
     drawPopChart();
+    drawPyramid("2016");
+    
+    // Add resize listener for responsive charts
+    window.addEventListener("resize", () => {
+        if(document.getElementById("dinamica").classList.contains("active")) {
+            drawPopChart();
+        }
+        if(document.getElementById("varste").classList.contains("active")) {
+            drawPyramid(document.getElementById("ageYear").value);
+        }
+    });
 });
 </script>
 </body>
