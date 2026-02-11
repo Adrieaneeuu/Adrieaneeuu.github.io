@@ -8,7 +8,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Raleway:wght@400;500;600&display=swap');
 
     :root {
-      --bg: #f4f7f6;
+      --bg-overlay: rgba(244, 247, 246, 0.92); /* Suprapunere pentru a citi textul pe fundal */
       --text: #2d3436;
       --accent: #27ae60; 
       --warning: #d63031;
@@ -20,10 +20,22 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: linear-gradient(135deg, var(--bg), #dfe6e9);
-      color: var(--text);
+      /* Adaugam imaginea de fundal ceruta */
+      background-image: url('https://ziua.md/wp-content/uploads/2025/12/droguri_05122025-1.jpg'); 
+      /* Nota: Am adaugat extensia .jpg presupunand ca lipseste, daca nu merge, sterge .jpg din link */
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
       font-family: 'Raleway', sans-serif;
       line-height: 1.6;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Un container peste body pentru a estompa putin fundalul */
+    .overlay {
+      background-color: var(--bg-overlay);
+      min-height: 100vh;
       padding: 20px;
     }
 
@@ -35,7 +47,7 @@
       padding: 40px;
       background: var(--card-bg);
       border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
       border-top: 6px solid var(--accent);
     }
 
@@ -55,7 +67,12 @@
       transition: 0.3s;
     }
 
-    .nav-btn:hover { background: var(--accent); color: white; transform: translateY(-2px); }
+    .nav-btn:hover, .nav-btn.active-btn { 
+      background: var(--accent); 
+      color: white; 
+      transform: translateY(-2px); 
+      box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+    }
 
     .section {
       display: none;
@@ -64,6 +81,7 @@
       border-radius: 20px;
       box-shadow: 0 15px 35px rgba(0,0,0,0.07);
       animation: fadeIn 0.5s ease;
+      margin-bottom: 40px;
     }
     .section.active { display: block; }
 
@@ -79,13 +97,26 @@
       margin-top: 20px;
     }
 
+    .images-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+    }
+
     .main-img {
       width: 100%;
-      max-width: 600px;
+      max-width: 400px; /* Am micsorat putin ca sa incapa doua */
+      height: 250px;
+      object-fit: cover;
       border-radius: 15px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.2);
       border: 4px solid #fff;
+      transition: transform 0.3s;
     }
+    
+    .main-img:hover { transform: scale(1.02); }
 
     .content-grid {
       display: grid;
@@ -111,7 +142,16 @@
       border-radius: 20px;
     }
 
-    /* Quiz Styles */
+    /* Quiz Styles Updated */
+    .quiz-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .question-text {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
     .quiz-option {
       padding: 15px;
       margin: 10px 0;
@@ -119,17 +159,42 @@
       border-radius: 10px;
       cursor: pointer;
       transition: 0.2s;
+      border: 2px solid transparent;
     }
-    .quiz-option:hover { background: #dfe4ea; }
-    .feedback { margin-top: 15px; padding: 10px; border-radius: 8px; display: none; text-align: center; font-weight: bold; }
-    .correct { background: #dff9fb; color: var(--correct); }
-    .incorrect { background: #fab1a0; color: var(--incorrect); }
+    .quiz-option:hover { background: #dfe4ea; border-color: #bdc3c7; }
+    
+    .quiz-option.correct-answer { background: #dff9fb; border-color: var(--correct); color: var(--correct); font-weight: bold; pointer-events: none;}
+    .quiz-option.wrong-answer { background: #fab1a0; border-color: var(--incorrect); color: var(--incorrect); pointer-events: none;}
+    
+    .quiz-controls {
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    .next-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none; /* Ascuns initial */
+    }
+
+    .score-board {
+      text-align: center;
+      font-size: 1.5rem;
+      color: var(--accent);
+      display: none;
+    }
 
     footer { text-align: center; margin-top: 40px; padding: 20px; font-size: 0.9rem; color: #636e72; }
   </style>
 </head>
 <body>
 
+<div class="overlay">
   <div class="container">
     <header>
       <h1>Influența Negativă a Drogurilor</h1>
@@ -137,11 +202,11 @@
     </header>
 
     <nav>
-      <button class="nav-btn" onclick="showSection('intro')">Introducere</button>
-      <button class="nav-btn" onclick="showSection('efecte')">Efecte Reale</button>
-      <button class="nav-btn" onclick="showSection('prevention')">Prevenție</button>
-      <button class="nav-btn" onclick="showSection('quiz')">Chestionar</button>
-      <button class="nav-btn" onclick="showSection('authors')">Autori</button>
+      <button class="nav-btn active-btn" onclick="showSection('intro', this)">Introducere</button>
+      <button class="nav-btn" onclick="showSection('efecte', this)">Efecte Reale</button>
+      <button class="nav-btn" onclick="showSection('prevention', this)">Prevenție</button>
+      <button class="nav-btn" onclick="showSection('quiz', this)">Chestionar</button>
+      <button class="nav-btn" onclick="showSection('authors', this)">Autori</button>
     </nav>
 
     <div id="intro" class="section active">
@@ -162,19 +227,23 @@
     <div id="efecte" class="section">
       <h2>Impactul devastator asupra omului</h2>
       <div class="impact-box">
-        <img src="https://media.evz.ro/wp-content/uploads/2008/11/abraham-romania-exporta-narcomani.jpg" alt="Consecintele consumului" class="main-img">
+        <div class="images-row">
+          <img src="https://media.evz.ro/wp-content/uploads/2008/11/abraham-romania-exporta-narcomani.jpg" alt="Consecintele consumului" class="main-img">
+          <img src="https://ovsyanuk.com.ua/images/alko_sigaret.jpg" alt="Alcool si tigari" class="main-img">
+        </div>
+        
         <p style="font-style: italic; text-align: center; color: var(--warning); max-width: 600px;">
-          "Imaginea de mai sus reflectă realitatea dură a dependenței: pierderea demnității, a sănătății fizice și degradarea vizibilă a întregii ființe."
+          "Imaginile reflectă realitatea dură a dependenței: de la alcool și tutun, până la substanțe interzise, toate duc la degradarea fizică și psihică."
         </p>
       </div>
       <div class="content-grid">
         <div class="info-card risk">
           <h3>Efecte Fizice</h3>
-          <p>Distrugerea organelor vitale, îmbătrânire prematură și risc de supradoză.</p>
+          <p>Distrugerea organelor vitale (ficat, plămâni, inimă), îmbătrânire prematură și risc ridicat de supradoză.</p>
         </div>
         <div class="info-card risk">
           <h3>Efecte Psihice</h3>
-          <p>Anxietate severă, paranoia, pierderea memoriei și a controlului decizional.</p>
+          <p>Anxietate severă, paranoia, halucinații, pierderea memoriei și a controlului decizional.</p>
         </div>
       </div>
     </div>
@@ -193,12 +262,20 @@
 
     <div id="quiz" class="section">
       <h2>Verifică ce ai învățat</h2>
-      <div id="q-container">
-        <p><strong>Care este cea mai eficientă metodă de a evita drogurile?</strong></p>
-        <div class="quiz-option" onclick="handleQuiz(false)">Să încerci o singură dată din curiozitate.</div>
-        <div class="quiz-option" onclick="handleQuiz(true)">Să alegi un anturaj sănătos și să fii informat.</div>
-        <div class="quiz-option" onclick="handleQuiz(false)">Să ignori complet problema.</div>
-        <div id="quiz-feedback" class="feedback"></div>
+      <div class="quiz-container">
+        <div id="quiz-content">
+            <p id="question-text" class="question-text">Încărcare întrebare...</p>
+            <div id="options-container"></div>
+            <div class="quiz-controls">
+                <button id="next-btn" class="next-btn" onclick="nextQuestion()">Următoarea întrebare</button>
+            </div>
+        </div>
+        
+        <div id="score-board" class="score-board">
+            <h3>Felicitări! Ai terminat testul.</h3>
+            <p>Scorul tău: <span id="final-score">0</span> din <span id="total-questions">0</span></p>
+            <button class="nav-btn" style="margin-top:20px;" onclick="resetQuiz()">Reîncepe Testul</button>
+        </div>
       </div>
     </div>
 
@@ -216,24 +293,140 @@
       &copy; 2026 Proiect Școlar Prevenție • IPLT „Ștefan Vodă”
     </footer>
   </div>
+</div>
 
-  <script>
-    function showSection(id) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+<script>
+  // Navigare intre sectiuni
+  function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    
+    // Update butoane meniu
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-btn'));
+    if(btn) btn.classList.add('active-btn');
+  }
+
+  // LOGICA PENTRU CHESTIONAR (QUIZ)
+  const questions = [
+    {
+      question: "Care este cea mai eficientă metodă de a evita dependența de droguri?",
+      options: [
+        "Să încerci o singură dată din curiozitate",
+        "Să alegi un anturaj sănătos și să fii informat",
+        "Să ignori complet problema",
+        "Să consumi doar alcool, nu droguri"
+      ],
+      correct: 1 // Indexul raspunsului corect (incepe de la 0)
+    },
+    {
+      question: "Cum afectează drogurile relațiile sociale?",
+      options: [
+        "Te fac mai popular la școală",
+        "Îți îmbunătățesc relația cu părinții",
+        "Duc la izolare, pierderea prietenilor și a încrederii familiei",
+        "Nu au niciun efect asupra prietenilor"
+      ],
+      correct: 2
+    },
+    {
+      question: "Care dintre următoarele este un efect fizic al consumului de substanțe?",
+      options: [
+        "Creșterea performanțelor sportive",
+        "Îmbunătățirea memoriei pe termen lung",
+        "Distrugerea organelor vitale (ficat, inimă, creier)",
+        "O piele mai sănătoasă"
+      ],
+      correct: 2
+    },
+    {
+      question: "Cine te poate ajuta dacă te simți presat să consumi droguri?",
+      options: [
+        "Un dealer de pe stradă",
+        "Părinții, profesorii sau consilierul școlar",
+        "Nimeni, trebuie să te descurci singur",
+        "Prietenii care consumă deja"
+      ],
+      correct: 1
+    },
+    {
+      question: "Este alcoolul considerat un drog?",
+      options: [
+        "Nu, este doar o băutură",
+        "Doar dacă bei foarte mult",
+        "Da, este un drog legal care creează dependență și afectează sănătatea",
+        "Nu, pentru că se vinde la magazin"
+      ],
+      correct: 2
+    }
+  ];
+
+  let currentQuestionIndex = 0;
+  let score = 0;
+
+  function loadQuestion() {
+    const q = questions[currentQuestionIndex];
+    document.getElementById('question-text').innerText = (currentQuestionIndex + 1) + ". " + q.question;
+    
+    const optsContainer = document.getElementById('options-container');
+    optsContainer.innerHTML = ''; // Curatam vechile optiuni
+
+    q.options.forEach((opt, index) => {
+      const div = document.createElement('div');
+      div.className = 'quiz-option';
+      div.innerText = opt;
+      div.onclick = () => checkAnswer(index, div);
+      optsContainer.appendChild(div);
+    });
+
+    document.getElementById('next-btn').style.display = 'none';
+  }
+
+  function checkAnswer(selectedIndex, element) {
+    // Prevenim click-uri multiple
+    const allOpts = document.querySelectorAll('.quiz-option');
+    allOpts.forEach(o => o.style.pointerEvents = 'none');
+
+    const correctIndex = questions[currentQuestionIndex].correct;
+
+    if(selectedIndex === correctIndex) {
+      element.classList.add('correct-answer');
+      score++;
+    } else {
+      element.classList.add('wrong-answer');
+      // Aratam si raspunsul corect
+      allOpts[correctIndex].classList.add('correct-answer');
     }
 
-    function handleQuiz(isCorrect) {
-      const fb = document.getElementById('quiz-feedback');
-      fb.style.display = 'block';
-      if(isCorrect) {
-        fb.innerText = "Corect! Informarea și prietenii buni sunt scutul tău.";
-        fb.className = "feedback correct";
-      } else {
-        fb.innerText = "Greșit. Chiar și o singură încercare poate duce la dependență.";
-        fb.className = "feedback incorrect";
-      }
+    document.getElementById('next-btn').style.display = 'inline-block';
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if(currentQuestionIndex < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
     }
-  </script>
+  }
+
+  function showResults() {
+    document.getElementById('quiz-content').style.display = 'none';
+    document.getElementById('score-board').style.display = 'block';
+    document.getElementById('final-score').innerText = score;
+    document.getElementById('total-questions').innerText = questions.length;
+  }
+
+  function resetQuiz() {
+    currentQuestionIndex = 0;
+    score = 0;
+    document.getElementById('score-board').style.display = 'none';
+    document.getElementById('quiz-content').style.display = 'block';
+    loadQuestion();
+  }
+
+  // Initializam prima intrebare
+  loadQuestion();
+
+</script>
 </body>
 </html>
