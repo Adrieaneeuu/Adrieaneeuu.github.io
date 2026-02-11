@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dezvoltare Personală: Alege Sănătatea</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Raleway:wght@400;500;600&display=swap');
+
+    :root {
+      --bg: #eff6f5;
+      --text: #1a3636;
+      --accent: #2d6a4f; /* Verde sănătos */
+      --highlight: #40916c;
+      --card-bg: #ffffff;
+      --correct: #52b788;
+      --incorrect: #e63946;
+      --nav-hover: #1b4332;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg), #d8e2dc);
+      color: var(--text);
+      font-family: 'Raleway', sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+      position: relative;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 10;
+    }
+
+    header {
+      text-align: center;
+      margin: 25px 0 30px;
+      padding: 30px;
+      background: var(--card-bg);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(45, 106, 79, 0.15);
+      border-bottom: 5px solid var(--accent);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+      animation: fadeInDown 1.2s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--highlight);
+      font-weight: 600;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 25px 0 30px;
+    }
+
+    .nav-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      padding: 12px 20px;
+      border-radius: 30px;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .nav-btn:hover {
+      background: var(--accent);
+      color: white;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(45, 106, 79, 0.3);
+    }
+
+    .section {
+      display: none;
+      padding: 30px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      margin: 25px 0;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+      animation: slideUp 0.6s ease-out forwards;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section.active { display: block; }
+
+    .section h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--accent);
+      font-size: 2rem;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .info-card {
+      background: #f8fcfb;
+      border-radius: 15px;
+      padding: 20px;
+      border-left: 5px solid var(--accent);
+      transition: transform 0.3s ease;
+    }
+
+    .info-card:hover { transform: scale(1.02); }
+
+    .info-card h3 { color: var(--highlight); margin-bottom: 10px; }
+
+    /* Stiluri specifice pentru liste și prevenție */
+    .list-item {
+      background: white;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .list-item::before {
+      content: "✓";
+      color: var(--correct);
+      font-weight: bold;
+      margin-right: 15px;
+      font-size: 1.2rem;
+    }
+
+    /* Chestionar */
+    .quiz-container { padding: 10px; }
+    .quiz-content { display: none; }
+    .quiz-content.active { display: block; }
+    .quiz-question { font-size: 1.3rem; font-weight: 600; margin-bottom: 20px; color: var(--accent); }
+    .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+    .quiz-option {
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .quiz-option:hover { background: #f0f7f4; border-color: var(--highlight); }
+    .quiz-btn {
+      margin-top: 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .feedback { margin-top: 15px; padding: 15px; border-radius: 8px; display: none; font-weight: 600; }
+    .correct { background: #d8f3dc; color: #1b4332; }
+    .incorrect { background: #ffe5ec; color: #a4161a; }
+
+    .author-box {
+      text-align: center;
+      padding: 30px;
+      background: linear-gradient(to bottom, #ffffff, #f0f7f4);
+      border-radius: 20px;
+      border: 2px solid var(--accent);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.8rem; }
+      .nav-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Dezvoltare Personală & Sănătate</h1>
+      <div class="subtitle">Puterea de a alege un viitor sănătos</div>
+    </header>
+
+    <nav>
+      <button class="nav-btn" onclick="showSection('intro')">Istorie și Definiții</button>
+      <button class="nav-btn" onclick="showSection('efecte')">Efecte și Riscuri</button>
+      <button class="nav-btn" onclick="showSection('preventie')">Cum ne protejăm?</button>
+      <button class="nav-btn" onclick="showSection('quiz')">Testează-ți cunoștințele</button>
+      <button class="nav-btn" onclick="showSection('author')">Autor</button>
+    </nav>
+
+    <div id="intro" class="section active">
+      <h2>O scurtă incursiune în istorie</h2>
+      <div class="info-card" style="margin-bottom: 20px;">
+        <h3>Antichitatea</h3>
+        <p>În Egiptul Antic, Grecia și Roma, anumite plante erau folosite pentru calmarea durerii sau în ceremonii religioase. Medicii vremii le considerau remedii, dar nu știau că pot crea dependență.</p>
+      </div>
+      <div class="content-grid">
+        <div class="info-card">
+          <h3>Ce sunt drogurile?</h3>
+          <p>Sunt substanțe care afectează organismul și mintea. Consumul lor poate distruge sănătatea, relațiile și viitorul unei persoane, inducând o stare falsă de bine care duce la dependență.</p>
+        </div>
+        <div class="info-card">
+          <h3>De ce consumă tinerii?</h3>
+          <p>Motivele includ adesea influența anturajului, curiozitatea, stresul sau dorința de a fi acceptați. Uneori par o „soluție”, dar în realitate creează și mai multe probleme.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="efecte" class="section">
+      <h2>Efectele asupra dezvoltării personale</h2>
+      <p style="margin-bottom: 20px; text-align: center;">Un consumator își pierde treptat controlul asupra propriei vieți. Drogurile afectează:</p>
+      <div class="content-grid">
+        <div class="info-card"><h3>Sănătatea</h3><p>Atât cea fizică (organe interne, creier), cât și cea psihică.</p></div>
+        <div class="info-card"><h3>Educația</h3><p>Capacitatea de a învăța și de a lua decizii corecte scade drastic.</p></div>
+        <div class="info-card"><h3>Relațiile</h3><p>Apar conflicte cu familia și pierderea prietenilor adevărați.</p></div>
+        <div class="info-card"><h3>Cariera</h3><p>Stima de sine scade, distrugând visele și oportunitățile profesionale.</p></div>
+      </div>
+    </div>
+
+    <div id="preventie" class="section">
+      <h2>Cum ne putem proteja?</h2>
+      <p style="text-align: center; margin-bottom: 20px;">Adevărata libertate înseamnă să poți spune „NU”. Iată cum:</p>
+      <div class="list-item">Informarea corectă din surse sigure.</div>
+      <div class="list-item">Alegerea unui cerc de prieteni care te susține și te respectă.</div>
+      <div class="list-item">Discutarea problemelor cu adulți de încredere (părinți, profesori).</div>
+      <div class="list-item">Implicarea în activități sportive, artistice și creative.</div>
+      <div style="margin-top: 30px; text-align: center; font-style: italic; color: var(--accent);">
+        <strong>Concluzie:</strong> Dezvoltarea personală înseamnă decizii responsabile pentru viitorul tău!
+      </div>
+    </div>
+
+    <div id="quiz" class="section">
+      <h2>Chestionar Interactiv</h2>
+      <div class="quiz-container">
+        <div id="q1" class="quiz-content active">
+          <p class="quiz-question">1. Ce sunt drogurile?</p>
+          <div class="quiz-options">
+            <div class="quiz-option" onclick="checkAnswer(1, 'b')">a) Substanțe care ajută doar la relaxare</div>
+            <div class="quiz-option" onclick="checkAnswer(1, 'correct')">b) Substanțe care pot crea dependență și afectează organismul</div>
+            <div class="quiz-option" onclick="checkAnswer(1, 'd')">c) Produse alimentare speciale</div>
+          </div>
+          <div id="f1" class="feedback"></div>
+        </div>
+
+        <div id="q2" class="quiz-content">
+          <p class="quiz-question">2. Care este un motiv frecvent pentru consum la tineri?</p>
+          <div class="quiz-options">
+            <div class="quiz-option" onclick="checkAnswer(2, 'correct')">a) Influența anturajului și curiozitatea</div>
+            <div class="quiz-option" onclick="checkAnswer(2, 'b')">b) Dorința de a învăța mai bine</div>
+            <div class="quiz-option" onclick="checkAnswer(2, 'c')">c) Practicarea sportului</div>
+          </div>
+          <div id="f2" class="feedback"></div>
+        </div>
+
+        <div id="q3" class="quiz-content">
+          <p class="quiz-question">3. Ce efect au asupra dezvoltării personale?</p>
+          <div class="quiz-options">
+            <div class="quiz-option" onclick="checkAnswer(3, 'a')">a) Îmbunătățesc memoria</div>
+            <div class="quiz-option" onclick="checkAnswer(3, 'correct')">b) Afectează sănătatea și capacitatea de a lua decizii</div>
+            <div class="quiz-option" onclick="checkAnswer(3, 'c')">c) Cresc încrederea pe termen lung</div>
+          </div>
+          <div id="f3" class="feedback"></div>
+        </div>
+
+        <div id="quiz-end" class="quiz-content" style="text-align:center;">
+          <h3>Felicitări!</h3>
+          <p>Ai finalizat chestionarul. Cunoașterea este prima linie de apărare!</p>
+          <button class="quiz-btn" onclick="resetQuiz()">Reia Testul</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="author" class="section">
+      <h2>Autorul Proiectului</h2>
+      <div class="author-box">
+        <p>Acest material educativ a fost structurat de:</p>
+        <h3 style="font-size: 2rem; margin: 15px 0;">Costea</h3>
+        <p>Pasionat de dezvoltare personală și viață sănătoasă.</p>
+        <div style="margin-top: 20px; font-weight: bold; color: var(--accent);">
+          IPLT „Ștefan Vodă” • 2026
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      &copy; 2026 Proiect de Dezvoltare Personală • Informatizarea în sprijinul educației
+    </footer>
+  </div>
+
+  <script>
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function checkAnswer(qNum, type) {
+      const feedback = document.getElementById('f' + qNum);
+      feedback.style.display = 'block';
+      
+      if (type === 'correct') {
+        feedback.innerText = "Excelent! Răspuns corect.";
+        feedback.className = "feedback correct";
+        setTimeout(() => {
+          document.getElementById('q' + qNum).classList.remove('active');
+          const next = qNum + 1;
+          if(document.getElementById('q' + next)) {
+            document.getElementById('q' + next).classList.add('active');
+          } else {
+            document.getElementById('quiz-end').classList.add('active');
+          }
+        }, 1500);
+      } else {
+        feedback.innerText = "Mai încearcă! Analizează cu atenție riscurile.";
+        feedback.className = "feedback incorrect";
+      }
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll('.quiz-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.feedback').forEach(f => f.style.display = 'none');
+      document.getElementById('q1').classList.add('active');
+    }
+  </script>
+</body>
+</html>
