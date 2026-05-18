@@ -1,1 +1,861 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obiective Turistice – [Localitatea/Țara]</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold:    #A0742A;
+    --gold2:   #C9921A;
+    --dark:    #F5F0E8;
+    --dark2:   #EDE6D8;
+    --mid:     #E0D6C4;
+    --teal:    #2A7A68;
+    --teal2:   #1F6155;
+    --cream:   #1C1C1C;
+    --cream2:  #111111;
+    --glass:   rgba(0,0,0,0.04);
+    --glass2:  rgba(0,0,0,0.07);
+    --border:  rgba(140,100,30,0.2);
+    --border2: rgba(140,100,30,0.4);
+  }
 
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    font-family: 'Jost', sans-serif;
+    background: var(--dark);
+    color: var(--cream);
+    user-select: none;
+    cursor: default;
+  }
+
+  /* ─── CANVAS BACKGROUND ─── */
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ─── GRID OVERLAY ─── */
+  .grid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(140,100,30,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(140,100,30,.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ─── NOISE GRAIN ─── */
+  .noise {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    opacity: .018;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 200px 200px;
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px;
+    background: rgba(255,255,255,.06);
+    z-index: 200;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal), var(--gold), var(--teal2));
+    background-size: 200% 100%;
+    transition: width .6s cubic-bezier(.4,0,.2,1);
+    animation: shimmer 3s linear infinite;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ─── CORNER ORNAMENTS ─── */
+  .corner {
+    position: fixed; width: 90px; height: 90px;
+    opacity: .22; pointer-events: none; z-index: 10;
+    transition: opacity .4s;
+  }
+  body:hover .corner { opacity: .32; }
+  .corner svg { width: 100%; height: 100%; }
+  .corner-tl { top: 14px; left: 14px; }
+  .corner-tr { top: 14px; right: 14px; transform: scaleX(-1); }
+  .corner-bl { bottom: 14px; left: 14px; transform: scaleY(-1); }
+  .corner-br { bottom: 14px; right: 14px; transform: scale(-1); }
+
+  /* ─── SLIDE COUNTER ─── */
+  .slide-counter {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .counter-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    transition: all .4s;
+    cursor: pointer;
+  }
+  .counter-dot.active {
+    background: var(--gold);
+    width: 20px; border-radius: 3px;
+  }
+
+  /* ─── NAV BUTTONS ─── */
+  .nav-btn {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    background: none; border: none;
+    z-index: 100; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    transition: all .3s;
+    opacity: .35;
+  }
+  .nav-btn svg { width: 28px; height: 28px; stroke: var(--gold); stroke-width: 1.5; fill: none; }
+  .nav-btn:hover {
+    opacity: 1;
+    background: rgba(160,116,42,.08);
+    border: 1px solid var(--border2);
+  }
+  #prev { left: 16px; }
+  #prev:hover { transform: translateY(-50%) translateX(-3px); }
+  #next { right: 16px; }
+  #next:hover { transform: translateY(-50%) translateX(3px); }
+
+  /* ─── SLIDES WRAPPER ─── */
+  .slides-wrapper {
+    position: relative; width: 100vw; height: 100vh; z-index: 5;
+  }
+
+  /* ─── SLIDE ─── */
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 100px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .55s cubic-bezier(.4,0,.2,1),
+                transform .55s cubic-bezier(.4,0,.2,1);
+    transform: translateY(24px) scale(.985);
+    will-change: transform, opacity;
+  }
+  .slide.active {
+    opacity: 1; pointer-events: all;
+    transform: translateY(0) scale(1);
+  }
+  .slide.leaving {
+    opacity: 0;
+    transform: translateY(-24px) scale(.985);
+  }
+
+  /* ─── RADIAL GLOW PER SLIDE ─── */
+  .slide::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 75% 25%, rgba(42,122,104,.06) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 20% 75%, rgba(160,116,42,.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* ─── TYPOGRAPHY ─── */
+  .slide-tag {
+    font-family: 'Jost', sans-serif;
+    font-size: .65rem; font-weight: 400;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: var(--teal2);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .slide-tag::before, .slide-tag::after {
+    content: '';
+    display: inline-block;
+    width: 24px; height: 1px;
+    background: var(--teal);
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(2.2rem, 5.5vw, 4.2rem);
+    line-height: 1.18; text-align: center;
+    color: var(--cream2);
+  }
+  h1 em { font-style: italic; color: var(--gold); font-weight: 300; }
+
+  h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: clamp(1.6rem, 3.2vw, 2.5rem);
+    color: var(--cream2);
+    letter-spacing: .02em;
+    margin-bottom: 24px;
+  }
+  h2 .accent-line {
+    display: block;
+    width: 40px; height: 2px;
+    background: linear-gradient(90deg, var(--gold), var(--teal));
+    margin-top: 10px;
+    border-radius: 1px;
+  }
+
+  .subtitle {
+    font-size: 1rem; font-weight: 200;
+    color: var(--cream); opacity: .6;
+    text-align: center; margin-top: 18px;
+    letter-spacing: .08em;
+  }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    width: 100px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 30px auto;
+  }
+
+  /* ─── COVER SPECIFIC ─── */
+  .cover-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(160,116,42,.08);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 7px 22px 7px 20px;
+    font-size: .63rem; font-weight: 400;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 28px;
+  }
+  .cover-badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .author-line {
+    margin-top: 34px;
+    font-size: .75rem; font-weight: 300;
+    letter-spacing: .15em;
+    color: var(--cream); opacity: .35;
+    text-align: center;
+  }
+
+  /* ─── INFO GRID ─── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%; max-width: 880px;
+    margin-top: 4px;
+  }
+  .info-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-top: 1px solid rgba(0,0,0,.06);
+    border-radius: 6px;
+    padding: 20px 24px;
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+    transition: border-color .3s, transform .3s;
+    animation: fadeUp .55s ease forwards;
+    opacity: 0;
+  }
+  .info-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(160,116,42,.25), transparent);
+  }
+  .info-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
+  .info-card:nth-child(1) { animation-delay: .10s; }
+  .info-card:nth-child(2) { animation-delay: .18s; }
+  .info-card:nth-child(3) { animation-delay: .26s; }
+  .info-card:nth-child(4) { animation-delay: .34s; }
+
+  .info-card-title {
+    font-size: .62rem; font-weight: 500;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--teal2);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .info-card p {
+    font-size: .9rem; font-weight: 300;
+    color: var(--cream); line-height: 1.65;
+    opacity: .75;
+  }
+
+  /* ─── BULLET LIST ─── */
+  .bullet-list {
+    list-style: none;
+    width: 100%; max-width: 780px;
+  }
+  .bullet-list li {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0,0,0,.07);
+    font-size: .97rem; font-weight: 300;
+    color: var(--cream); line-height: 1.6;
+    animation: fadeUp .5s ease forwards;
+    opacity: 0;
+  }
+  .bullet-list li:nth-child(1) { animation-delay: .10s; }
+  .bullet-list li:nth-child(2) { animation-delay: .18s; }
+  .bullet-list li:nth-child(3) { animation-delay: .26s; }
+  .bullet-list li:nth-child(4) { animation-delay: .34s; }
+  .bullet-list li:nth-child(5) { animation-delay: .42s; }
+
+  .dot {
+    flex-shrink: 0; margin-top: 8px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 6px rgba(160,116,42,.4);
+  }
+
+  /* ─── TWO-COL ─── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    width: 100%; max-width: 920px;
+    align-items: start;
+    margin-top: 6px;
+  }
+
+  /* ─── PHOTO PLACEHOLDER ─── */
+  .photo-placeholder, .map-ph {
+    width: 100%; height: 210px;
+    background: rgba(0,0,0,.025);
+    border: 1px dashed var(--border2);
+    border-radius: 6px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px;
+    color: rgba(130,90,20,.5);
+    font-size: .63rem; letter-spacing: .22em;
+    text-transform: uppercase;
+    position: relative; overflow: hidden;
+  }
+  .photo-placeholder .ph-icon, .map-ph .ph-icon {
+    font-size: 2rem; opacity: .45;
+  }
+  .photo-placeholder::after, .map-ph::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(160,116,42,.04) 0%, transparent 70%);
+  }
+
+  /* ─── STAT ROW ─── */
+  .stat-row {
+    display: flex; gap: 16px;
+    margin-top: 22px; width: 100%; max-width: 780px;
+  }
+  .stat-box {
+    flex: 1; text-align: center;
+    padding: 24px 16px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    backdrop-filter: blur(8px);
+    position: relative; overflow: hidden;
+    animation: fadeUp .6s ease forwards; opacity: 0;
+    transition: transform .3s;
+  }
+  .stat-box::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .stat-box:hover { transform: translateY(-3px); }
+  .stat-box:nth-child(1) { animation-delay: .10s; }
+  .stat-box:nth-child(2) { animation-delay: .22s; }
+  .stat-box:nth-child(3) { animation-delay: .34s; }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem; font-weight: 600;
+    color: var(--gold); line-height: 1;
+  }
+  .stat-label {
+    font-size: .6rem; font-weight: 400;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--cream); opacity: .45;
+    margin-top: 8px;
+  }
+
+  /* ─── HIGHLIGHT ─── */
+  .highlight {
+    background: rgba(42,122,104,.07);
+    border: 1px solid rgba(42,122,104,.22);
+    border-left: 3px solid var(--teal);
+    border-radius: 4px;
+    padding: 20px 28px;
+    font-size: .92rem; font-weight: 300;
+    color: var(--cream); line-height: 1.75;
+    max-width: 780px; width: 100%;
+    margin-top: 14px;
+    position: relative;
+  }
+  .highlight::before {
+    content: '💡';
+    position: absolute; top: 18px; left: -14px;
+    background: var(--dark); padding: 2px;
+    border-radius: 50%; font-size: 1rem;
+  }
+
+  /* ─── FINAL SLIDE ─── */
+  .final-ring {
+    position: relative;
+    width: 190px; height: 190px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 36px;
+  }
+  .final-ring::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(160,116,42,.3);
+    animation: ringPulse 3s ease-in-out infinite;
+  }
+  .final-ring::after {
+    content: '';
+    position: absolute; inset: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(42,122,104,.25);
+    animation: ringPulse 3s ease-in-out infinite .5s;
+  }
+  @keyframes ringPulse {
+    0%, 100% { transform: scale(1); opacity: .5; }
+    50%       { transform: scale(1.06); opacity: 1; }
+  }
+  .final-icon {
+    font-size: 3.8rem;
+    position: relative; z-index: 1;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(.94); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .slide.active .anim-1  { animation: fadeUp .55s ease .05s forwards; }
+  .slide.active .anim-2  { animation: fadeUp .55s ease .18s forwards; }
+  .slide.active .anim-3  { animation: fadeUp .55s ease .30s forwards; }
+  .slide.active .anim-4  { animation: fadeUp .55s ease .42s forwards; }
+  .slide.active .anim-photo { animation: scaleIn .65s ease .12s forwards; }
+  .anim-1, .anim-2, .anim-3, .anim-4, .anim-photo { opacity: 0; }
+
+  /* ─── KEYBOARD HINT ─── */
+  .key-hint {
+    position: fixed; bottom: 50px; right: 24px;
+    font-size: .55rem; letter-spacing: .18em;
+    color: rgba(255,255,255,.18);
+    text-transform: uppercase;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<!-- Particle Canvas -->
+<canvas id="bg-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="noise"></div>
+
+<!-- Progress bar -->
+<div class="progress"><div class="progress-fill" id="pbar"></div></div>
+
+<!-- Corner ornaments -->
+<div class="corner corner-tl">
+  <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 86 L4 4 L86 4" stroke="#8C641E" stroke-width="1.2"/>
+    <path d="M4 4 L22 4 M4 4 L4 22" stroke="#8C641E" stroke-width=".6" opacity=".5"/>
+    <rect x="2" y="2" width="5" height="5" fill="none" stroke="#8C641E" stroke-width=".8"/>
+    <circle cx="4" cy="4" r="2.5" fill="#8C641E"/>
+  </svg>
+</div>
+<div class="corner corner-tr">
+  <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 86 L4 4 L86 4" stroke="#8C641E" stroke-width="1.2"/>
+    <circle cx="4" cy="4" r="2.5" fill="#8C641E"/>
+  </svg>
+</div>
+<div class="corner corner-bl">
+  <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 86 L4 4 L86 4" stroke="#8C641E" stroke-width="1.2"/>
+    <circle cx="4" cy="4" r="2.5" fill="#8C641E"/>
+  </svg>
+</div>
+<div class="corner corner-br">
+  <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 86 L4 4 L86 4" stroke="#8C641E" stroke-width="1.2"/>
+    <circle cx="4" cy="4" r="2.5" fill="#8C641E"/>
+  </svg>
+</div>
+
+<!-- Slide dots -->
+<div class="slide-counter" id="dots"></div>
+
+
+
+<div class="slides-wrapper">
+
+  <!-- ═══════ SLIDE 1 — COVER ═══════ -->
+  <div class="slide active" id="s0">
+    <div class="cover-badge anim-1">Lucrare Practică Nr. 2</div>
+    <h1 class="anim-2">Castelul Mimi<br><em>Republica Moldova</em></h1>
+    <div class="divider anim-3"></div>
+    <p class="author-line anim-4">Mitrofanov Adrian &nbsp;·&nbsp; Costea Kryzhanovsky &nbsp;·&nbsp; Clasa 9B &nbsp;·&nbsp; 18 mai 2026</p>
+    <p class="author-line anim-4" style="margin-top:10px;">Evaluator: Olga Vozian</p>
+  </div>
+
+  <!-- ═══════ SLIDE 2 — SELECTAREA OBIECTIVULUI ═══════ -->
+  <div class="slide" id="s1">
+    <div class="slide-tag anim-1">01 / Selectarea obiectivului</div>
+    <h2 class="anim-2">Castelul Mimi<span class="accent-line"></span></h2>
+    <div class="two-col">
+      <div>
+        <ul class="bullet-list">
+          <li><span class="dot"></span>Monument de patrimoniu construit la sfârșitul secolului al XIX-lea, cu o valoare istorică și arhitecturală deosebită.</li>
+          <li><span class="dot"></span>Una dintre cele mai vizitate obiective turistice din Republica Moldova, frecventat de zeci de mii de vizitatori anual.</li>
+          <li><span class="dot"></span>Complex viticol renumit, simbol al tradițiilor vitivinicole moldovenești.</li>
+        </ul>
+      </div>
+      <div class="anim-photo">
+        <img src="https://i.ibb.co/zpbHtbq/IMG-20260518-053809-571.jpg" alt="Castelul Mimi" style="width:100%;height:210px;object-fit:cover;border-radius:6px;border:1px solid rgba(140,100,30,0.2);">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 3 — POZIȚIA GEOGRAFICĂ ═══════ -->
+  <div class="slide" id="s2">
+    <div class="slide-tag anim-1">02 / Poziția geografică</div>
+    <h2 class="anim-2">Localizare<span class="accent-line"></span></h2>
+    <div class="two-col">
+      <div>
+        <ul class="bullet-list">
+          <li><span class="dot"></span>Castelul Mimi este situat în Univers, în galaxia Calea Lactee, Sistemului Solar, Planeta Pământ, Eurasia, Republica Moldova, raionul Anenii Noi, Satul Bulboaca</li>
+        </ul>
+      </div>
+      <div class="anim-photo">
+        <img src="https://i.ibb.co/xS8jftY3/rm-map-castel-mimi-360x388x0x17x360x353x1709930979.png" alt="Harta Castelul Mimi" style="width:100%;height:210px;object-fit:contain;border-radius:6px;border:1px solid rgba(140,100,30,0.2);background:rgba(0,0,0,0.02);">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 4 — POTENȚIALUL NATURAL ȘI ANTROPIC ═══════ -->
+  <div class="slide" id="s3">
+    <div class="slide-tag anim-1">03 / Potențialul natural și construit</div>
+    <h2 class="anim-2">Resurse turistice naturale și construite<span class="accent-line"></span></h2>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-title">🌿 Natură</div>
+        <p>Relief colinar domol specific Podișului Moldovei Centrale, afluenți ai Nistrului, lacuri artificiale și naturale, vegetație de silvostepă cu păduri de stejar, tei și salcâm.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🏛 Arhitectură</div>
+        <p>Castel construit la sfârșitul secolului al XIX-lea, monument de patrimoniu cu arhitectură elegantă, crame subterane și galerii de vinuri istorice.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🎭 Cultură</div>
+        <p>Tradiții vitivinicole moldovenești, degustări de vinuri, festivaluri sezoniere, activități gastronomice și evenimente culturale în cadrul complexului.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🦌 Faună</div>
+        <p>Fauna include specii precum iepurele de câmp, căprioara, fazanul și diverse specii de păsări, specifice zonei de silvostepă a Moldovei.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 5 — INFRASTRUCTURA TURISTICĂ ═══════ -->
+  <div class="slide" id="s4">
+    <div class="slide-tag anim-1">04 / Infrastructura turistică</div>
+    <h2 class="anim-2">Servicii disponibile<span class="accent-line"></span></h2>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-title">🏨 Cazare</div>
+        <p>Hotelul Castel Mimi – unitate modernă în complexul castelului. Pensiuni turistice din Bulboaca și localitățile apropiate, cu condiții confortabile în regim rural.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🍽 Alimentație</div>
+        <p>Restaurantul Castel Mimi – specific local și internațional, cu preparate tradiționale asociate vinurilor produse la castel.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🚌 Transport</div>
+        <p>Acces direct pe drumul național M2 (Chișinău–Tighina). Microbuze și autobuze pe ruta Chișinău–Anenii Noi, parcare disponibilă în incinta complexului.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">ℹ Informare turistică</div>
+        <p>Site web oficial, pagini pe rețele sociale (Facebook, Instagram, YouTube), rezervări online și programe de vizitare disponibile pentru turiști.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ FOTO 3 ═══════ -->
+  <div class="slide" id="foto3">
+    <div class="slide-tag anim-1">Castelul Mimi — Fotografie</div>
+    <img src="https://i.ibb.co/9HMfrTw1/1685621168-castelul-mimi.jpg" alt="Castelul Mimi" class="anim-photo" style="max-width:900px;width:100%;max-height:72vh;object-fit:cover;border-radius:8px;border:1px solid rgba(140,100,30,0.25);box-shadow:0 8px 40px rgba(0,0,0,0.08);">
+  </div>
+
+  <!-- ═══════ FOTO 4 ═══════ -->
+  <div class="slide" id="foto4">
+    <div class="slide-tag anim-1">Castelul Mimi — Fotografie</div>
+    <img src="https://i.ibb.co/xqrvhDkJ/IMG-20260518-054843-477.jpg" alt="Castelul Mimi" class="anim-photo" style="max-width:900px;width:100%;max-height:72vh;object-fit:cover;border-radius:8px;border:1px solid rgba(140,100,30,0.25);box-shadow:0 8px 40px rgba(0,0,0,0.08);">
+  </div>
+
+  <!-- ═══════ FOTO 5 ═══════ -->
+  <div class="slide" id="foto5">
+    <div class="slide-tag anim-1">Castelul Mimi — Fotografie</div>
+    <img src="https://i.ibb.co/X9xv8k3/IMG-20260518-055253-595.jpg" alt="Castelul Mimi" class="anim-photo" style="max-width:900px;width:100%;max-height:72vh;object-fit:cover;border-radius:8px;border:1px solid rgba(140,100,30,0.25);box-shadow:0 8px 40px rgba(0,0,0,0.08);">
+  </div>
+
+  <div class="slide" id="s5">
+    <div class="slide-tag anim-1">05 / Activități de valorificare</div>
+    <h2 class="anim-2">Ce fac turiștii?<span class="accent-line"></span></h2>
+    <ul class="bullet-list" style="max-width:700px">
+      <li><span class="dot"></span>Excursii ghidate prin castel, crame subterane și galerii de vinuri</li>
+      <li><span class="dot"></span>Degustări de vinuri locale, însoțite de prezentări despre tradiția viticolă moldovenească</li>
+      <li><span class="dot"></span>Plimbări și tururi pietonale în incinta complexului și în zona viticolă</li>
+      <li><span class="dot"></span>Zeci de mii de vizitatori anual – atât turiști autohtoni, cât și străini</li>
+    </ul>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-num">50.000+</div>
+        <div class="stat-label">Vizitatori / an</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">3+</div>
+        <div class="stat-label">Trasee / activități</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">2+</div>
+        <div class="stat-label">Unități cazare</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 7 — ACTIVITĂȚI DE PROMOVARE ═══════ -->
+  <div class="slide" id="s6">
+    <div class="slide-tag anim-1">06 / Activități de promovare</div>
+    <h2 class="anim-2">Cum este promovat?<span class="accent-line"></span></h2>
+    <ul class="bullet-list" style="max-width:700px">
+      <li><span class="dot"></span>Rețele de socializare: Facebook, Instagram, YouTube – pagini oficiale cu evenimente, degustări și imagini din complex</li>
+      <li><span class="dot"></span>Site web oficial și platforme turistice – prezentarea ofertelor, programelor de vizitare și rezervărilor online</li>
+      <li><span class="dot"></span>Participare la târguri și expoziții de turism și vinuri la nivel național și internațional</li>
+      <li><span class="dot"></span>Promovare prin parteneriate cu agenții de turism și ghiduri turistice</li>
+    </ul>
+    <div class="highlight anim-4" style="max-width:700px">
+      💡 Propuneri noi: Campanii internaționale de promovare online pentru turismul viticol; tururi virtuale 360° pentru atragerea turiștilor străini; diversificarea evenimentelor tematice (zile gastronomice, festivaluri sezoniere).
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 8 — IMPACTUL ASUPRA MEDIULUI ═══════ -->
+  <div class="slide" id="s7">
+    <div class="slide-tag anim-1">07 / Impactul asupra mediului</div>
+    <h2 class="anim-2">Turism responsabil<span class="accent-line"></span></h2>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-title">⚠ Impact negativ</div>
+        <p>Fluxul mare de turiști poate genera deșeuri, zgomot și presiune asupra vegetației și terenurilor viticole din jur.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">✅ Măsuri actuale</div>
+        <p>Reguli stricte de vizitare, zone delimitate, gestionarea deșeurilor în incinta complexului și personal dedicat pentru menținerea ordinii.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">🌱 Propuneri de reducere</div>
+        <p>Limitarea numărului de vizitatori simultan, introducerea transportului electric în complex, programe de educație ecologică pentru turiști.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">♻ Impact pozitiv</div>
+        <p>Locuri de muncă create în regiune, investiții în infrastructura locală, conservarea patrimoniului arhitectural și viticol moldovenesc.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SLIDE 9 — BIBLIOGRAFIE ═══════ -->
+  <div class="slide" id="s8">
+    <div class="slide-tag anim-1">08 / Bibliografie</div>
+    <h2 class="anim-2">Surse utilizate<span class="accent-line"></span></h2>
+    <ul class="bullet-list" style="max-width:700px">
+      <li><span class="dot"></span>Site oficial Castel Mimi – www.castelmimi.md</li>
+      <li><span class="dot"></span>Agenția Turismului a Republicii Moldova – www.turism.gov.md</li>
+      <li><span class="dot"></span>Enciclopedia geografică a Republicii Moldova, Ed. Știința, Chișinău, 2002</li>
+      <li><span class="dot"></span>Platforma turistică moldova.travel</li>
+    </ul>
+
+  </div>
+
+  <!-- ═══════ SLIDE 10 — FINAL ═══════ -->
+  <div class="slide" id="s9">
+    <div class="final-ring anim-1">
+      <span class="final-icon">🏛</span>
+    </div>
+    <h1 class="anim-2">Vă mulțumim<br><em>pentru atenție!</em></h1>
+    <div class="divider anim-3"></div>
+    <p class="subtitle anim-3">Mitrofanov Adrian &nbsp;·&nbsp; Costea Kryzhanovsky &nbsp;·&nbsp; Clasa 9B &nbsp;·&nbsp; 18 mai 2026</p>
+    <p class="author-line anim-4">Întrebări?</p>
+  </div>
+
+</div><!-- /slides-wrapper -->
+
+<!-- Navigation -->
+<button class="nav-btn" id="prev">
+  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
+<button class="nav-btn" id="next">
+  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+</button>
+
+<script>
+  /* ─── PARTICLE CANVAS ─── */
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function Particle() {
+    this.reset();
+  }
+  Particle.prototype.reset = function() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.r = Math.random() * 1.2 + .3;
+    this.alpha = Math.random() * .25 + .05;
+    this.vx = (Math.random() - .5) * .12;
+    this.vy = (Math.random() - .5) * .12;
+    this.pulse = Math.random() * Math.PI * 2;
+    this.gold = Math.random() > .5;
+  };
+
+  for (let i = 0; i < 90; i++) particles.push(new Particle());
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    const t = Date.now() * .001;
+
+    // Ambient glow
+    const g1 = ctx.createRadialGradient(W*.7, H*.25, 0, W*.7, H*.25, W*.45);
+    g1.addColorStop(0, 'rgba(42,122,104,.04)');
+    g1.addColorStop(1, 'transparent');
+    ctx.fillStyle = g1;
+    ctx.fillRect(0, 0, W, H);
+
+    const g2 = ctx.createRadialGradient(W*.15, H*.75, 0, W*.15, H*.75, W*.35);
+    g2.addColorStop(0, 'rgba(160,116,42,.03)');
+    g2.addColorStop(1, 'transparent');
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 0, W, H);
+
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.pulse += .008;
+      const a = p.alpha * (.7 + .3 * Math.sin(p.pulse));
+      if (p.x < -5 || p.x > W+5 || p.y < -5 || p.y > H+5) p.reset();
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.gold
+        ? `rgba(160,116,42,${a})`
+        : `rgba(42,122,104,${a * .7})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  /* ─── SLIDESHOW ─── */
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const pbar   = document.getElementById('pbar');
+  const dotsEl = document.getElementById('dots');
+  let cur = 0, isAnimating = false;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'counter-dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+  });
+
+  function getDots() { return Array.from(dotsEl.querySelectorAll('.counter-dot')); }
+
+  function goTo(n) {
+    if (isAnimating || n === cur) return;
+    isAnimating = true;
+    const prev = cur;
+    cur = ((n % slides.length) + slides.length) % slides.length;
+
+    slides[prev].classList.add('leaving');
+    setTimeout(() => {
+      slides[prev].classList.remove('active', 'leaving');
+    }, 550);
+
+    slides[cur].classList.add('active');
+
+    const pct = ((cur + 1) / slides.length) * 100;
+    pbar.style.width = pct + '%';
+
+    getDots().forEach((d, i) => d.classList.toggle('active', i === cur));
+
+    setTimeout(() => { isAnimating = false; }, 600);
+  }
+
+  document.getElementById('next').onclick = () => goTo(cur + 1);
+  document.getElementById('prev').onclick = () => goTo(cur - 1);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') goTo(cur + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    goTo(cur - 1);
+  });
+
+  // Touch / swipe
+  let touchX = null;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) dx < 0 ? goTo(cur + 1) : goTo(cur - 1);
+    touchX = null;
+  });
+
+  // Init
+  goTo(0);
+</script>
+</body>
+</html>
